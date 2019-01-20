@@ -2,23 +2,12 @@ from enum import Enum
 
 
 class Ability:
-    def __init__(self, name, type, range, ap_cost, cooldown):
+    def __init__(self, name, type, range, ap_cost, cooldown, power, area_of_effect, is_lobbing):
         self.name = name
         self.type = type
         self.range = range
         self.ap_cost = ap_cost
         self.cooldown = cooldown
-
-
-class DodgeAbility(Ability):
-
-    def __init__(self, name, type, range, ap_cost, cooldown):
-        super().__init__(name, type, range, ap_cost, cooldown)
-
-
-class PowerAbility(Ability):
-    def __init__(self, name, type, range, ap_cost, cooldown, power, area_of_effect, is_lobbing):
-        super().__init__(name, type, range, ap_cost, cooldown)
         self.power = power
         self.area_of_effect = area_of_effect
         self.is_lobbing = is_lobbing
@@ -62,23 +51,14 @@ class AbilityConstants:
         self.cooldown = cooldown
 
 
-class PowerAbilityConstants(AbilityConstants):
-    def __init__(self, name, type, range, ap_cost, aoe, power, is_lobbing):
-        super().__init__(name, type, range, ap_cost)
-        self.area_of_effect = aoe
-        self.power = power
-        self.is_lobbing = is_lobbing
-
-
-class DodgeAbilityConstants:
-    def __init__(self, name, type, range, ap_cost):
-        super().__init__(name, type, range, ap_cost)
-
-
 class Ability:
-    def __init__(self, ability_constants, rem_cooldown):
+    def __init__(self, ability_constants, rem_cooldown, area_of_effect,
+                 power, is_lobbing, ):
         self.ability_constants = ability_constants
         self.rem_cooldown = rem_cooldown
+        self.area_of_effect = area_of_effect
+        self.power = power
+        self.is_lobbing = is_lobbing
 
 
 class Hero:
@@ -178,10 +158,12 @@ class Game:
             return target_cell
         return self.get_ray_cells(start_cell, target_cell)[-1]  # return the last cell of ray cells
 
+    def get_impact_cells(self, ability, ):
+        pass
     def manhattan_distance(self, start_cell, end_cell):
         import math
         return int(math.fabs(start_cell.row - end_cell.row) + math.fabs(start_cell.column - end_cell.column))
-
+    #todo : with row and colm
     def slope_equation(self, x1, y1, x2, y2, x3, y3):
         return y3 * (x1 - x2) - x3 * (y1 - y2) - (x1 * y2 - y1 * x2)
 
@@ -246,7 +228,7 @@ class Game:
                 break
             if neighbour.row != current.row and neighbour.column != current.column:
                 if self.map.get_cell(current.row, neighbour.column).is_wall or self.map.get_cell(neighbour.row,
-                                                                                           current.column).is_wall:
+                                                                                                 current.column).is_wall:
                     break
             res += [neighbour]
             former = current
@@ -265,6 +247,7 @@ class Game:
         return False
 
     def get_path_move_directions(self, start_cell, end_cell):
+        pass
 
     def bfs(self):
         pass
