@@ -1,6 +1,23 @@
 from enum import Enum
 
 
+class AbilityName(Enum):
+    pass
+
+
+class Direction(Enum):
+    UP, DOWN, RIGHT, LEFT = range(4)
+
+
+class HeroName(Enum):
+    HEALER, FIGHTER, WIMP = range(3)
+    OMID = 3.1415926535897932384636
+
+
+class Direction(Enum):
+    UP, DOWN, LEFT, RIGHT = range(4)
+
+
 class AbilityConstants:
     def __init__(self, name, type, range, ap_cost, cooldown, power, area_of_effect, is_lobbing):
         self.name = name
@@ -11,22 +28,6 @@ class AbilityConstants:
         self.power = power
         self.area_of_effect = area_of_effect
         self.is_lobbing = is_lobbing
-
-
-
-class AbilityName(Enum):
-    HEAL_FOR_THE_GREATER_GOOD, HEAL_FOR_THE_LESSER_GOOD, HEAL_FOR_THE_MEDIUM_GOOD = range(3)
-
-class Direction(Enum):
-    UP , DOWN, RIGHT, LEFT = range(4)
-
-class HeroName(Enum):
-    HEALER, FIGHTER, WIMP = range(3)
-    OMID = 3.1415926535897932384636
-
-
-class Direction(Enum):
-    UP, DOWN, LEFT, RIGHT = range(4)
 
 
 class GameConstants:
@@ -45,9 +46,6 @@ class Ability:
         self.area_of_effect = area_of_effect
         self.power = power
         self.is_lobbing = is_lobbing
-
-
-
 
 
 class HeroConstants:
@@ -111,7 +109,7 @@ class Map:
         self.opp_respawn_zone = opp_respawn_zone
 
     def is_in_map(self, row, column):
-        if(0<=row< self.row_num and 0<=column<self.column_num):
+        if (0 <= row < self.row_num and 0 <= column < self.column_num):
             return True
         return False
 
@@ -136,6 +134,7 @@ class Game:
         self.created_walls = created_walls
         self.ap = ap
         self.score = score
+
     def get_ability_constants(self, ability_name):
         for a in self.ability_constants:
             if a.name == ability_name:
@@ -166,7 +165,6 @@ class Game:
                 return hero
         return None
 
-
     def get_opp_hero(self, cell):
         for hero in self.opp_heroes:
             if hero.current_cell == cell:
@@ -188,19 +186,22 @@ class Game:
 
     def get_impact_cells(self, ability, ):
         pass
+
     def manhattan_distance(self, start_cell, end_cell):
         import math
         return int(math.fabs(start_cell.row - end_cell.row) + math.fabs(start_cell.column - end_cell.column))
-    #todo : with row and colm
+
+    # todo : with row and colm
     def slope_equation(self, x1, y1, x2, y2, x3, y3):
         return y3 * (x1 - x2) - x3 * (y1 - y2) - (x1 * y2 - y1 * x2)
 
     def move_hero(self, hero_id, directions):
         pass
 
-    def move_hero(self, hero , directions):
+    def move_hero(self, hero, directions):
         # self.move_hero(self, hero.id, directions) #todo : different prototype need
         pass
+
     def calculate_neighbour(self, start, target, current, former):
         if start.row == target.row:
             if start.row != current.row:
@@ -282,14 +283,14 @@ class Game:
 
     def get_next_cel(self, cell, direction):
         if self.is_accessible(cell.row - 1, cell.column) and direction == Direction.UP:
-            return True
-        if self.is_accessible(cell.row, cell.column -1) and direction == Direction.LEFT:
-            return True
-        if self.is_accessible(cell.row+1, cell.row) and direction == Direction.DOWN:
-            return True
-        if self.is_accessible(cell.row, cell.column+1) and direction == Direction.RIGHT:
-            return True
-        return False
+            return self.map.get_cell(cell.row - 1, cell.column)
+        if self.is_accessible(cell.row, cell.column - 1) and direction == Direction.LEFT:
+            return self.map.get_cell(cell.row, cell.column - 1)
+        if self.is_accessible(cell.row + 1, cell.column) and direction == Direction.DOWN:
+            return self.map.get_cell(cell.row + 1, cell.column)
+        if self.is_accessible(cell.row, cell.column + 1) and direction == Direction.RIGHT:
+            return self.map.get_cell(cell.row, cell.column + 1)
+        return None
 
     def get_path_move_directions(self, start_cell, end_cell):
         pass
