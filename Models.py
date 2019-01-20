@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Ability:
+class AbilityConstants:
     def __init__(self, name, type, range, ap_cost, cooldown, power, area_of_effect, is_lobbing):
         self.name = name
         self.type = type
@@ -13,9 +13,12 @@ class Ability:
         self.is_lobbing = is_lobbing
 
 
+
 class AbilityName(Enum):
     HEAL_FOR_THE_GREATER_GOOD, HEAL_FOR_THE_LESSER_GOOD, HEAL_FOR_THE_MEDIUM_GOOD = range(3)
 
+class Direction(Enum):
+    UP , DOWN, RIGHT, LEFT = range(4)
 
 class HeroName(Enum):
     HEALER, FIGHTER, WIMP = range(3)
@@ -34,23 +37,6 @@ class GameConstants:
         self.max_turns = max_turns
 
 
-class HeroConstants:
-    def __init__(self, hero_name, ability_names, max_hp, move_ap_cost):
-        self.name = hero_name
-        self.ability_names = ability_names
-        self.max_hp = max_hp
-        self.move_ap_cost = move_ap_cost
-
-
-class AbilityConstants:
-    def __init__(self, name, type, range, ap_cost, cooldown):
-        self.name = name
-        self.type = type
-        self.range = range
-        self.ap_cost = ap_cost
-        self.cooldown = cooldown
-
-
 class Ability:
     def __init__(self, ability_constants, rem_cooldown, area_of_effect,
                  power, is_lobbing, ):
@@ -59,6 +45,17 @@ class Ability:
         self.area_of_effect = area_of_effect
         self.power = power
         self.is_lobbing = is_lobbing
+
+
+
+
+
+class HeroConstants:
+    def __init__(self, hero_name, ability_names, max_hp, move_ap_cost):
+        self.name = hero_name
+        self.ability_names = ability_names
+        self.max_hp = max_hp
+        self.move_ap_cost = move_ap_cost
 
 
 class Hero:
@@ -113,6 +110,11 @@ class Map:
         self.my_respawn_zone = my_respawn_zone
         self.opp_respawn_zone = opp_respawn_zone
 
+    def is_in_map(self, row, column):
+        if(0<=row< self.row_num and 0<=column<self.column_num):
+            return True
+        return False
+
     def get_cell(self, row, column):
         if 0 <= row < self.row_num and 0 <= column < self.column_num:
             return self.cells[row][column]
@@ -134,6 +136,15 @@ class Game:
         self.created_walls = created_walls
         self.ap = ap
         self.score = score
+    def get_ability_constants(self, ability_name):
+        for a in self.ability_constants:
+            if a.name == ability_name:
+                return a
+
+    def get_hero_constatns(self, hero_name):
+        for h in self.hero_constants:
+            if hero_name == h.name:
+                return h
 
     def get_hero(self, id):
         for hero in self.my_heroes:
@@ -147,9 +158,26 @@ class Game:
                 return hero
         return None
 
+    def get_my_hero(self, row, column):
+        if not self.map.is_in_map(row, column):
+            return None
+        for hero in self.my_heroes:
+            if hero.current_cell.row == row and hero.current_cell.column == column:
+                return hero
+        return None
+
+
     def get_opp_hero(self, cell):
         for hero in self.opp_heroes:
             if hero.current_cell == cell:
+                return hero
+        return None
+
+    def get_opp_hero(self, row, column):
+        if not self.map.is_in_map(row, column):
+            return None
+        for hero in self.opp_heroes:
+            if hero.current_cell.row == row and hero.current_cell.column == column:
                 return hero
         return None
 
@@ -167,6 +195,12 @@ class Game:
     def slope_equation(self, x1, y1, x2, y2, x3, y3):
         return y3 * (x1 - x2) - x3 * (y1 - y2) - (x1 * y2 - y1 * x2)
 
+    def move_hero(self, hero_id, directions):
+        pass
+
+    def move_hero(self, hero , directions):
+        # self.move_hero(self, hero.id, directions) #todo : different prototype need
+        pass
     def calculate_neighbour(self, start, target, current, former):
         if start.row == target.row:
             if start.row != current.row:
@@ -244,6 +278,17 @@ class Game:
     def is_accessible(self, row, column):
         if 0 <= row < self.map.row_num and 0 <= column < self.map.column_num:
             return not self.map.get_cell(row, column).is_wall
+        return False
+
+    def get_next_cel(self, cell, direction):
+        if self.is_accessible(cell.row - 1, cell.column) and direction == Direction.UP:
+            return True
+        if self.is_accessible(cell.row, cell.column -1) and direction == Direction.LEFT:
+            return True
+        if self.is_accessible(cell.row+1, cell.row) and direction == Direction.DOWN:
+            return True
+        if self.is_accessible(cell.row, cell.column+1) and direction == Direction.RIGHT:
+            return True
         return False
 
     def get_path_move_directions(self, start_cell, end_cell):
