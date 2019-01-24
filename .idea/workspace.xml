@@ -12,69 +12,12 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-537">
-              <caret line="13" column="35" lean-forward="true" selection-start-line="13" selection-start-column="35" selection-end-line="13" selection-end-column="35" />
-              <folding>
-                <element signature="e#232#300#0" />
-                <element signature="e#494#735#0" />
-                <element signature="e#692#889#0" />
-                <element signature="e#762#889#0" />
-                <element signature="e#921#1228#0" />
-                <element signature="e#1036#1228#0" />
-                <element signature="e#1259#1469#0" />
-                <element signature="e#1335#1469#0" />
-                <element signature="e#1488#2192#0" />
-                <element signature="e#1659#2016#0" />
-                <element signature="e#2055#2144#0" />
-                <element signature="e#2178#2192#0" />
-                <element signature="e#2211#2811#0" />
-                <element signature="e#2369#2670#0" />
-                <element signature="e#2709#2811#0" />
-                <element signature="e#3045#3569#0" />
-                <element signature="e#3152#3380#0" />
-                <element signature="e#3216#3316#0" />
-                <element signature="e#3427#3569#0" />
-                <element signature="e#3559#3970#0" />
-                <element signature="e#4034#4131#0" />
-                <element signature="e#4079#4131#0" />
-                <element signature="e#4180#4270#0" />
-                <element signature="e#4222#4270#0" />
-                <element signature="e#4224#4329#0" />
-                <element signature="e#4264#4309#0" />
-                <element signature="e#4372#4489#0" />
-                <element signature="e#4412#4469#0" />
-                <element signature="e#4772#4961#0" />
-                <element signature="e#4884#4941#0" />
-                <element signature="e#5049#5167#0" />
-                <element signature="e#5091#5148#0" />
-                <element signature="e#5219#5450#0" />
-                <element signature="e#5331#5430#0" />
-                <element signature="e#4726#4879#0" />
-                <element signature="e#4932#4936#0" />
-                <element signature="e#5001#5122#0" />
-                <element signature="e#5215#5275#0" />
-                <element signature="e#6129#6133#0" />
-                <element signature="e#6187#6243#0" />
-                <element signature="e#5352#7578#0" />
-                <element signature="e#5392#5659#0" />
-                <element signature="e#5714#5981#0" />
-                <element signature="e#6034#7578#0" />
-                <element signature="e#6081#7578#0" />
-                <element signature="e#6710#6955#0" />
-                <element signature="e#7639#8532#0" />
-                <element signature="e#7892#8513#0" />
-                <element signature="e#8210#8453#0" />
-                <element signature="e#8592#8756#0" />
-                <element signature="e#9874#10026#0" />
-                <element signature="e#10076#10572#0" />
-                <element signature="e#9032#9036#0" />
-                <element signature="e#9523#9527#0" />
-                <element signature="e#9528#9593#0" />
-              </folding>
+            <state relative-caret-position="343">
+              <caret line="316" column="12" selection-start-line="316" selection-start-column="12" selection-end-line="316" selection-end-column="12" />
             </state>
           </provider>
         </entry>
@@ -84,6 +27,7 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>is_in_map</find>
+      <find>Cell</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -153,14 +97,9 @@
     <frame x="73" y="27" width="1847" height="1053" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Favorites" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24986118" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25263742" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="SonarLint" />
-      <window_info anchor="bottom" id="Version Control" />
-      <window_info anchor="bottom" id="Python Console" />
-      <window_info active="true" anchor="bottom" id="Terminal" visible="true" weight="0.3293348" />
-      <window_info anchor="bottom" id="Event Log" side_tool="true" />
+      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" />
@@ -168,75 +107,23 @@
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="right" id="R Packages" />
-      <window_info anchor="right" id="R Graphics" />
+      <window_info anchor="bottom" id="SonarLint" order="7" />
+      <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="bottom" id="Terminal" order="9" visible="true" weight="0.3293348" />
+      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
+      <window_info anchor="bottom" id="Python Console" order="11" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="R Graphics" order="3" />
+      <window_info anchor="right" id="R Packages" order="4" />
     </layout>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/Models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-537">
-          <caret line="13" column="35" lean-forward="true" selection-start-line="13" selection-start-column="35" selection-end-line="13" selection-end-column="35" />
-          <folding>
-            <element signature="e#232#300#0" />
-            <element signature="e#494#735#0" />
-            <element signature="e#692#889#0" />
-            <element signature="e#762#889#0" />
-            <element signature="e#921#1228#0" />
-            <element signature="e#1036#1228#0" />
-            <element signature="e#1259#1469#0" />
-            <element signature="e#1335#1469#0" />
-            <element signature="e#1488#2192#0" />
-            <element signature="e#1659#2016#0" />
-            <element signature="e#2055#2144#0" />
-            <element signature="e#2178#2192#0" />
-            <element signature="e#2211#2811#0" />
-            <element signature="e#2369#2670#0" />
-            <element signature="e#2709#2811#0" />
-            <element signature="e#3045#3569#0" />
-            <element signature="e#3152#3380#0" />
-            <element signature="e#3216#3316#0" />
-            <element signature="e#3427#3569#0" />
-            <element signature="e#3559#3970#0" />
-            <element signature="e#4034#4131#0" />
-            <element signature="e#4079#4131#0" />
-            <element signature="e#4180#4270#0" />
-            <element signature="e#4222#4270#0" />
-            <element signature="e#4224#4329#0" />
-            <element signature="e#4264#4309#0" />
-            <element signature="e#4372#4489#0" />
-            <element signature="e#4412#4469#0" />
-            <element signature="e#4772#4961#0" />
-            <element signature="e#4884#4941#0" />
-            <element signature="e#5049#5167#0" />
-            <element signature="e#5091#5148#0" />
-            <element signature="e#5219#5450#0" />
-            <element signature="e#5331#5430#0" />
-            <element signature="e#4726#4879#0" />
-            <element signature="e#4932#4936#0" />
-            <element signature="e#5001#5122#0" />
-            <element signature="e#5215#5275#0" />
-            <element signature="e#6129#6133#0" />
-            <element signature="e#6187#6243#0" />
-            <element signature="e#5352#7578#0" />
-            <element signature="e#5392#5659#0" />
-            <element signature="e#5714#5981#0" />
-            <element signature="e#6034#7578#0" />
-            <element signature="e#6081#7578#0" />
-            <element signature="e#6710#6955#0" />
-            <element signature="e#7639#8532#0" />
-            <element signature="e#7892#8513#0" />
-            <element signature="e#8210#8453#0" />
-            <element signature="e#8592#8756#0" />
-            <element signature="e#9874#10026#0" />
-            <element signature="e#10076#10572#0" />
-            <element signature="e#9032#9036#0" />
-            <element signature="e#9523#9527#0" />
-            <element signature="e#9528#9593#0" />
-          </folding>
+        <state relative-caret-position="343">
+          <caret line="316" column="12" selection-start-line="316" selection-start-column="12" selection-end-line="316" selection-end-column="12" />
         </state>
       </provider>
     </entry>

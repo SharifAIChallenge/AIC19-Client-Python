@@ -81,7 +81,7 @@ class Hero:
 
 
 class Cell:
-    def __init__(self, is_wall, is_in_my_respawn_zone, is_in_opp_respawn_zone, is_in_objective_respawn_zone,
+    def __init__(self, is_wall, is_in_my_respawn_zone , is_in_opp_respawn_zone, is_in_objective_respawn_zone,
                  is_in_vision, row, column):
         self.is_wall = is_wall
         self.is_in_my_respawn_zone = is_in_my_respawn_zone
@@ -184,14 +184,14 @@ class Game:
             return target_cell
         return self.get_ray_cells(start_cell, target_cell)[-1]  # return the last cell of ray cells
 
-    def get_impact_cells(self, ability, ):
-        pass
+    def get_impact_cells(self, ability_name, start_cell, target_cell):
+        pass#todo :
 
     def manhattan_distance(self, start_cell, end_cell):
         import math
         return int(math.fabs(start_cell.row - end_cell.row) + math.fabs(start_cell.column - end_cell.column))
 
-    # todo : with row and colm
+    #todo : with row and colm
     def slope_equation(self, x1, y1, x2, y2, x3, y3):
         return y3 * (x1 - x2) - x3 * (y1 - y2) - (x1 * y2 - y1 * x2)
 
@@ -297,6 +297,26 @@ class Game:
 
     def bfs(self):
         pass
+
+    def get_cells_in_aoe(self, cell, area_of_effect):
+        cells = []
+        for row in range(cell.row - area_of_effect, cell.row + area_of_effect+1):
+            for col in range(cell.column -area_of_effect, cell.column + area_of_effect + 1):
+                if not self.map.is_in_map(row, col):
+                    continue
+                if self.manhattan_distance(cell, self.map.get_cell(row, col))<=area_of_effect:
+                    cells += self.map.get_cell(row, col)
+        return cells
+
+    def get_ability_targets(self, ability_name, start_cell, end_cell):
+        cells = []
+        ability_constant = self.get_ability_constants(ability_name)
+        cells = self.get_impact_cells(ability_name, start_cell, end_cell)
+        afected_cells = set()
+        for cell in cells:
+            afected_cells.update(self.get_cells_in_aoe(cell, ability_constant.area_of.effect))
+
+
 #     void castAbility(int id, Ability ability, Cell targetCell);
 #     void moveHero(int id, Direction[] move_directions);
 #     void pickHero(HeroName heroName)
