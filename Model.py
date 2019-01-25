@@ -30,6 +30,7 @@ class AbilityConstants:
         self.is_lobbing = is_lobbing
         self.is_piercing = is_piercing
 
+
 class GameConstants:
     def __init__(self, max_ap, timeout, respawn_time, max_turns):
         self.max_ap = max_ap
@@ -39,14 +40,9 @@ class GameConstants:
 
 
 class Ability:
-    def __init__(self, ability_constants, rem_cooldown, area_of_effect,
-                 power, is_lobbing, ):
+    def __init__(self, ability_constants ):
         self.ability_constants = ability_constants
-        self.rem_cooldown = rem_cooldown
-        self.area_of_effect = area_of_effect
-        self.power = power
-        self.is_lobbing = is_lobbing
-
+        self.rem_cooldown = 0
 
 class HeroConstants:
     def __init__(self, hero_name, ability_names, max_hp, move_ap_cost):
@@ -57,19 +53,14 @@ class HeroConstants:
 
 
 class Hero:
-    def __init__(self, hero_id, current_hp, hero_constants, abilities, dodge_abilities, heal_abilities,
-                 attack_abilities, current_cell, recent_path):
+    def __init__(self, hero_id, hero_constants, abilities):
         self.id = hero_id
-        self.current_hp = current_hp
+        self.current_hp = 0
         self.hero_constants = hero_constants
 
         self.abilities = abilities
-        self.dodge_abilities = dodge_abilities
-        self.heal_abilities = heal_abilities
-        self.attack_abilities = attack_abilities
-
-        self.current_cell = current_cell
-        self.recent_path = recent_path
+        self.current_cell = None
+        self.recent_path = None
 
     def __eq__(self, other):
         if type(self) is type(other):
@@ -123,19 +114,18 @@ class World:
     _DEBUGGING_MODE = False
     _LOG_FILELPOINTER = None
 
-    def __init__(self, map, game_constants, ability_constants, hero_constants, my_hero_academia, opp_heroes,
-                 my_dead_heroes, broken_walls, created_walls, ap, score):
+    def __init__(self, map, game_constants, ability_constants, hero_constants, my_heroes, opp_heroes,
+                 my_dead_heroes, ap, score):
         self.map = map
         self.game_constants = game_constants
         self.ability_constants = ability_constants
         self.hero_constants = hero_constants
-        self.my_heroes = my_hero_academia
+        self.my_heroes = my_heroes
         self.opp_heroes = opp_heroes
         self.my_dead_heroes = my_dead_heroes
-        self.broken_walls = broken_walls
-        self.created_walls = created_walls
         self.ap = ap
         self.score = score
+        self.heroes = None
 
     def _handle_init_message(self, msg):
         if World._DEBUGGING_MODE:
@@ -143,32 +133,65 @@ class World:
                 World._LOG_FILE_POINTER = open("client.log", 'w')
             World._LOG_FILE_POINTER.write(str(msg))
             World._LOG_FILE_POINTER.write('\n')
-        temp_map = msg["gameConstants"]
-        self.game_constants = GameConstants(temp_map["maxAP"], temp_map["timeout"],
-                                            temp_map["respawnTime"],temp_map["maxTurn"])
+        self.game_constant_init(msg)
+        self.map_init(msg)
+        self.hero_init(msg)
+        self.ability_constants_init(msg)
+
+    def ability_constants_init(self, msg):
+        ability_list = msg["abilities"]
+        abilities = []
+        for dic in ability_list:
+            ability_constant = AbilityConstants(dic["name"], self.get_type(dic["type"]), dic["range"], dic["APCost"]
+                                                , dic["cooldown"], dic["power"], dic["areaOfEffect"], dic["isLobbing"]
+                                                , dic["isPiercing"])  # todo : what is real format
+            abilities.__add__(ability_constant)
+        self.ability_constants = abilities
+
+    def hero_init(self, msg):
+        heroes_list = msg["heroes"]
+        heroes = []
+        for step, h in enumerate(heroes_list):
+            names = []
+            for name in h["abilityNames"]:
+                names.__add__(name)
+            constant = HeroConstants(h["name"], names, h["maxHP"], h["moveAPCost"])
+            heroes.__add__(Hero(step, constant, None))
+        self.heroes = heroes
+
+    def map_init(self, msg):
         temp_map = msg["map"]
-        rowNum = temp_map["rowNum"]
-        colNum = temp_map["columnNum"]
+        row_num = temp_map["rowNum"]
+        col_num = temp_map["columnNum"]
         cells_map = temp_map["cells"]
-        cells = [[0 for _ in range(rowNum)] for _ in range(colNum)]
-        objectice_zone = []
+        cells = [[0 for _ in range(row_num)] for _ in range(col_num)]
+        objective_zone = []
         my_respawn_zone = []
         opp_respawn_zone = []
-        for row in range(int(rowNum)):
-            for col in range(int(colNum)):
+        for row in range(int(row_num)):
+            for col in range(int(col_num)):
                 temp_cell = cells_map[row][col]
-                cells[row][col] = Cell(temp_cell["isWall"], temp_cell["isInMyRespawnZone"], temp_cell["isInOppRespawnZone"],
-                                       temp_cell["isInObjectZone"], False, row, col)
-                if cells[row][col].is_objective_zone:
-                    objectice_zone.__add__(cells[row][col])
+                c = cells[row][col] = Cell(temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
+                                           temp_cell["isInOppRespawnZone"],
+                                           temp_cell["isInObjectZone"], False, row, col)
+                if c.is_objective_zone:
+                    objective_zone.__add__(c)
+                if c.is_in_my_respawn_zone:
+                    my_respawn_zone.__add__(c)
+                if c.is_in_opp_respawn_zone:
+                    opp_respawn_zone.__add__(c)
+        self.map = Map(row_num, col_num, cells, objective_zone, my_respawn_zone, opp_respawn_zone)
 
+    def game_constant_init(self, msg):
+        temp_map = msg["gameConstants"]
+        self.game_constants = GameConstants(temp_map["maxAP"], temp_map["timeout"],
+                                            temp_map["respawnTime"], temp_map["maxTurn"])
 
-
-        self.map
     def get_ability_constants(self, ability_name):
         for a in self.ability_constants:
             if a.name == ability_name:
                 return a
+
     def get_hero_constants(self, hero_name):
         for h in self.hero_constants:
             if hero_name == h.name:
@@ -220,7 +243,7 @@ class World:
         if start_cell.is_wall or start_cell == target_cell:
             return start_cell
         last_cell = None
-        rey_cells= self.get_ray_cells(start_cell, start_cell)
+        rey_cells = self.get_ray_cells(start_cell, start_cell)
         impact_cells = []
 
         for cell in rey_cells:
@@ -231,14 +254,13 @@ class World:
                 impact_cells.__add__(cell)
                 if not ability_constant.is_piercing:
                     break
-        if not last_cell in impact_cells :
+        if not last_cell in impact_cells:
             impact_cells.__add__(last_cell)
         return impact_cells
 
-
     def is_affected(self, ability_constant, cell):
         return (self.get_opp_hero(cell) != None and not ability_constant.type == AbilityType.HEAL) or (
-                    self.get_my_hero(cell) != None and ability_constant.type == AbilityType.HEAL)
+                self.get_my_hero(cell) != None and ability_constant.type == AbilityType.HEAL)
 
     def manhattan_distance(self, start_cell, end_cell):
         import math
