@@ -81,12 +81,12 @@ class Hero:
 
 
 class Cell:
-    def __init__(self, is_wall, is_in_my_respawn_zone, is_in_opp_respawn_zone, is_in_objective_respawn_zone,
+    def __init__(self, is_wall, is_in_my_respawn_zone, is_in_opp_respawn_zone, is_in_objective_zone,
                  is_in_vision, row, column):
         self.is_wall = is_wall
         self.is_in_my_respawn_zone = is_in_my_respawn_zone
         self.is_in_opp_respawn_zone = is_in_opp_respawn_zone
-        self.is_in_objective_zone = is_in_objective_respawn_zone
+        self.is_in_objective_zone = is_in_objective_zone
         self.is_in_vision = is_in_vision
 
         self.row = row
@@ -102,7 +102,6 @@ class Map:
     def __init__(self, row_num, column_num, cells, objective_zone, my_respawn_zone, opp_respawn_zone):
         self.row_num = row_num
         self.column_num = column_num
-
         self.cells = cells
         self.objective_zone = objective_zone
         self.my_respawn_zone = my_respawn_zone
@@ -121,6 +120,9 @@ class Map:
 
 
 class World:
+    _DEBUGGING_MODE = False
+    _LOG_FILELPOINTER = None
+
     def __init__(self, map, game_constants, ability_constants, hero_constants, my_hero_academia, opp_heroes,
                  my_dead_heroes, broken_walls, created_walls, ap, score):
         self.map = map
@@ -136,13 +138,37 @@ class World:
         self.score = score
 
     def _handle_init_message(self, msg):
-        pass
+        if World._DEBUGGING_MODE:
+            if World._LOG_FILE_POINTER is None:
+                World._LOG_FILE_POINTER = open("client.log", 'w')
+            World._LOG_FILE_POINTER.write(str(msg))
+            World._LOG_FILE_POINTER.write('\n')
+        temp_map = msg["gameConstants"]
+        self.game_constants = GameConstants(temp_map["maxAP"], temp_map["timeout"],
+                                            temp_map["respawnTime"],temp_map["maxTurn"])
+        temp_map = msg["map"]
+        rowNum = temp_map["rowNum"]
+        colNum = temp_map["columnNum"]
+        cells_map = temp_map["cells"]
+        cells = [[0 for _ in range(rowNum)] for _ in range(colNum)]
+        objectice_zone = []
+        my_respawn_zone = []
+        opp_respawn_zone = []
+        for row in range(int(rowNum)):
+            for col in range(int(colNum)):
+                temp_cell = cells_map[row][col]
+                cells[row][col] = Cell(temp_cell["isWall"], temp_cell["isInMyRespawnZone"], temp_cell["isInOppRespawnZone"],
+                                       temp_cell["isInObjectZone"], False, row, col)
+                if cells[row][col].is_objective_zone:
+                    objectice_zone.__add__(cells[row][col])
 
+
+
+        self.map
     def get_ability_constants(self, ability_name):
         for a in self.ability_constants:
             if a.name == ability_name:
                 return a
-
     def get_hero_constants(self, hero_name):
         for h in self.hero_constants:
             if hero_name == h.name:
