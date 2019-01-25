@@ -135,6 +135,9 @@ class World:
         self.ap = ap
         self.score = score
 
+    def _handle_init_message(self, msg):
+        pass
+
     def get_ability_constants(self, ability_name):
         for a in self.ability_constants:
             if a.name == ability_name:
@@ -320,3 +323,32 @@ class World:
 #     void castAbility(int id, Ability ability, Cell targetCell);
 #     void moveHero(int id, Direction[] move_directions);
 #     void pickHero(HeroName heroName)
+class Event:
+    EVENT = "event"
+
+    def __init__(self, type, args):
+        self.type = type
+        self.args = args
+
+    def add_arg(self, arg):
+        self.args.append(arg)
+
+
+class ServerConstants:
+    KEY_ARGS = "args"
+    KEY_NAME = "name"
+    KEY_TYPE = "type"
+
+    CONFIG_KEY_IP = "ip"
+    CONFIG_KEY_PORT = "port"
+    CONFIG_KEY_TOKEN = "token"
+
+    MESSAGE_TYPE_EVENT = "event"
+    MESSAGE_TYPE_INIT = "init"
+    MESSAGE_TYPE_SHUTDOWN = "shutdown"
+    MESSAGE_TYPE_TURN = "turn"
+
+    CHANGE_TYPE_ADD = "a"
+    CHANGE_TYPE_DEL = "d"
+    CHANGE_TYPE_MOV = "m"
+    CHANGE_TYPE_ALT = "c"
