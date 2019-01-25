@@ -14,12 +14,12 @@ class HeroName(Enum):
     OMID = 3.1415926535897932384636
 
 
-class Direction(Enum):
-    UP, DOWN, LEFT, RIGHT = range(4)
+class AbilityType(Enum):
+    HEAL, DODGE, ATTACK = range(3)
 
 
 class AbilityConstants:
-    def __init__(self, name, type, range, ap_cost, cooldown, power, area_of_effect, is_lobbing):
+    def __init__(self, name, type, range, ap_cost, cooldown, power, area_of_effect, is_lobbing, is_piercing):
         self.name = name
         self.type = type
         self.range = range
@@ -28,7 +28,7 @@ class AbilityConstants:
         self.power = power
         self.area_of_effect = area_of_effect
         self.is_lobbing = is_lobbing
-
+        self.is_piercing = is_piercing
 
 class GameConstants:
     def __init__(self, max_ap, timeout, respawn_time, max_turns):
@@ -81,7 +81,7 @@ class Hero:
 
 
 class Cell:
-    def __init__(self, is_wall, is_in_my_respawn_zone , is_in_opp_respawn_zone, is_in_objective_respawn_zone,
+    def __init__(self, is_wall, is_in_my_respawn_zone, is_in_opp_respawn_zone, is_in_objective_respawn_zone,
                  is_in_vision, row, column):
         self.is_wall = is_wall
         self.is_in_my_respawn_zone = is_in_my_respawn_zone
@@ -143,7 +143,7 @@ class World:
             if a.name == ability_name:
                 return a
 
-    def get_hero_constatns(self, hero_name):
+    def get_hero_constants(self, hero_name):
         for h in self.hero_constants:
             if hero_name == h.name:
                 return h
@@ -188,13 +188,37 @@ class World:
         return self.get_ray_cells(start_cell, target_cell)[-1]  # return the last cell of ray cells
 
     def get_impact_cells(self, ability_name, start_cell, target_cell):
-        pass#todo :
+        ability_constant = self.get_ability_constants(ability_name)
+        if ability_constant.is_lobbing:
+            return target_cell
+        if start_cell.is_wall or start_cell == target_cell:
+            return start_cell
+        last_cell = None
+        rey_cells= self.get_ray_cells(start_cell, start_cell)
+        impact_cells = []
+
+        for cell in rey_cells:
+            if self.manhattan_distance(cell, start_cell):
+                continue
+            last_cell = cell
+            if self.is_affected(ability_constant, cell):
+                impact_cells.__add__(cell)
+                if not ability_constant.is_piercing:
+                    break
+        if not last_cell in impact_cells :
+            impact_cells.__add__(last_cell)
+        return impact_cells
+
+
+    def is_affected(self, ability_constant, cell):
+        return (self.get_opp_hero(cell) != None and not ability_constant.type == AbilityType.HEAL) or (
+                    self.get_my_hero(cell) != None and ability_constant.type == AbilityType.HEAL)
 
     def manhattan_distance(self, start_cell, end_cell):
         import math
         return int(math.fabs(start_cell.row - end_cell.row) + math.fabs(start_cell.column - end_cell.column))
 
-    #todo : with row and colm
+    # todo : with row and colm
     def slope_equation(self, x1, y1, x2, y2, x3, y3):
         return y3 * (x1 - x2) - x3 * (y1 - y2) - (x1 * y2 - y1 * x2)
 
@@ -303,11 +327,11 @@ class World:
 
     def get_cells_in_aoe(self, cell, area_of_effect):
         cells = []
-        for row in range(cell.row - area_of_effect, cell.row + area_of_effect+1):
-            for col in range(cell.column -area_of_effect, cell.column + area_of_effect + 1):
+        for row in range(cell.row - area_of_effect, cell.row + area_of_effect + 1):
+            for col in range(cell.column - area_of_effect, cell.column + area_of_effect + 1):
                 if not self.map.is_in_map(row, col):
                     continue
-                if self.manhattan_distance(cell, self.map.get_cell(row, col))<=area_of_effect:
+                if self.manhattan_distance(cell, self.map.get_cell(row, col)) <= area_of_effect:
                     cells += self.map.get_cell(row, col)
         return cells
 
@@ -315,9 +339,28 @@ class World:
         cells = []
         ability_constant = self.get_ability_constants(ability_name)
         cells = self.get_impact_cells(ability_name, start_cell, end_cell)
-        afected_cells = set()
+        affected_cells = set()
         for cell in cells:
-            afected_cells.update(self.get_cells_in_aoe(cell, ability_constant.area_of.effect))
+            affected_cells.update(self.get_cells_in_aoe(cell, ability_constant.area_of.effect))
+        if ability_constant.type == AbilityType.HEAL:
+            return self.get_my_heroes_in_cells(cells)
+        return self.get_opp_heroes_in_cells(cells)
+
+    def get_my_heroes_in_cells(self, cells):
+        heroes = []
+        for cell in cells:
+            hero = self.get_my_hero(cell)
+            if hero:
+                heroes.__add__(hero)
+        return heroes
+
+    def get_opp_heroes_in_cells(self, cells):
+        heroes = []
+        for cell in cells:
+            hero = self.get_opp_hero(cell)
+            if hero:
+                heroes.__add__(hero)
+        return heroes
 
 
 #     void castAbility(int id, Ability ability, Cell targetCell);
