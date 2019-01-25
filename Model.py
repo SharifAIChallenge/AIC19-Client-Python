@@ -120,7 +120,7 @@ class Map:
             return None
 
 
-class Game:
+class World:
     def __init__(self, map, game_constants, ability_constants, hero_constants, my_hero_academia, opp_heroes,
                  my_dead_heroes, broken_walls, created_walls, ap, score):
         self.map = map
