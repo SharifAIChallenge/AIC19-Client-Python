@@ -292,7 +292,7 @@ class World:
                 return self.map.get_cell(current.row - 1, current.column)
             else:
                 return self.map.get_cell(current.row + 1, current.column)
-
+        options = []
         for delta_row in range(-1, 2):
             for delta_col in range(-1, 2):
                 if not self.is_accessible(current.row + delta_row, current.column + delta_col):
@@ -311,7 +311,9 @@ class World:
                     y3 = (possible_next_cell.column + current.column) / 2
 
                     if self.slope_equation(x1, y1, x2, y2, x3, y3) == 0:
-                        return possible_next_cell
+                        if current is not former:
+                            return possible_next_cell
+                        options += [possible_next_cell]
 
                 x3 = (current.row + possible_next_cell.row) / 2 + (possible_next_cell.column - current.column) / 2
                 y3 = (possible_next_cell.column + current.column) / 2 + (possible_next_cell.row - current.row) / 2
@@ -320,7 +322,13 @@ class World:
                 y4 = (possible_next_cell.column + current.column) / 2 - (possible_next_cell.row - current.row) / 2
 
                 if self.slope_equation(x1, y1, x2, y2, x3, y3) * self.slope_equation(x1, y1, x2, y2, x4, y4) < 0:
-                    return possible_next_cell
+                    if current is not former:
+                        return possible_next_cell
+                    options += [possible_next_cell]
+        for option in options:
+            if (start.row <= option.row <= target.row) or (start.row >= option.row >= target.row):
+                if (start.column <= option.column <= target.column) or (start.column >= option.column >= target.column):
+                    return option
 
     def get_ray_cells(self, start_cell, end_cell):
         if not self.is_accessible(start_cell.row, start_cell.column):
@@ -356,7 +364,7 @@ class World:
             return not self.map.get_cell(row, column).is_wall
         return False
 
-    def get_next_cel(self, cell, direction):
+    def get_next_cell(self, cell, direction):
         if self.is_accessible(cell.row - 1, cell.column) and direction == Direction.UP:
             return self.map.get_cell(cell.row - 1, cell.column)
         if self.is_accessible(cell.row, cell.column - 1) and direction == Direction.LEFT:
