@@ -32,11 +32,13 @@ class AbilityConstants:
 
 
 class GameConstants:
-    def __init__(self, max_ap, timeout, respawn_time, max_turns):
+    def __init__(self, max_ap, timeout, respawn_time, max_turns, kill_score, objective_zone_score):
         self.max_ap = max_ap
         self.timeout = timeout
         self.respawn_time = respawn_time
         self.max_turns = max_turns
+        self.kill_score = kill_score
+        self.objective_zone_score = objective_zone_ score
 
 
 class Ability:
