@@ -217,6 +217,14 @@ class World:
                 return hero
         return None
 
+        ability_list = msg["abilities"]
+        abilities = []
+        for dic in ability_list:
+            ability_constant = AbilityConstants(dic["name"], self.get_type(dic["type"]), dic["range"], dic["APCost"]
+                                                , dic["cooldown"], dic["power"], dic["areaOfEffect"], dic["isLobbing"]
+                                                , dic["isPiercing"])#todo : what is real format
+            abilities.__add__(ability_constant)
+        self.ability_constants = abilities
     def get_opp_hero(self, cell):
         for hero in self.opp_heroes:
             if hero.current_cell == cell:

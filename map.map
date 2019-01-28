@@ -1,0 +1,312 @@
+[
+{
+	"gameConstants": {
+		"killScore": 100,
+		"objectiveZoneScore": 1,
+		"timeout": 500,
+		"maxAP": 100,
+		"maxTurns": 1000
+	},
+	
+	"map": 
+	{
+		"rowNum": 5,
+		"columnNum": 5,
+		
+		"cells": [
+			[
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 0,
+					"column": 0
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": true,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 0,
+					"column": 1
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": true,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 0,
+					"column": 2
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": true,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 0,
+					"column": 3
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": true,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 0,
+					"column": 4
+				}
+			],
+			[
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 1,
+					"column": 0
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 1,
+					"column": 1
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": true,
+					"row": 1,
+					"column": 2
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": true,
+					"row": 1,
+					"column": 3
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 1,
+					"column": 4
+				}
+			],
+			[
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 2,
+					"column": 0
+				},
+				{
+					"isWall": true,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 2,
+					"column": 1
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": true,
+					"row": 2,
+					"column": 2
+				},
+				{
+					"isWall": true,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 2,
+					"column": 3
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 2,
+					"column": 4
+				}
+			],
+			[
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 3,
+					"column": 0
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": true,
+					"row": 3,
+					"column": 1
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": true,
+					"row": 3,
+					"column": 2
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 3,
+					"column": 3
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 3,
+					"column": 4
+				}
+			],
+			[
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": true,
+					"isInObjectZone": false,
+					"row": 4,
+					"column": 0
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": true,
+					"isInObjectZone": false,
+					"row": 4,
+					"column": 1
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": true,
+					"isInObjectZone": false,
+					"row": 4,
+					"column": 2
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": true,
+					"isInObjectZone": false,
+					"row": 4,
+					"column": 3
+				},
+				{
+					"isWall": false,
+					"isInFirstRespawnZone": false,
+					"isInSecondRespawnZone": false,
+					"isInObjectZone": false,
+					"row": 4,
+					"column": 4
+				}
+			]
+		]
+	},
+	
+	"heroConstants": [
+		{
+			"name": "Ruhollah",
+			"abilityNames": ["suicide", "attack", "dodge"],
+			"maxHP": 1000,
+			"moveAPCost": 2,
+			"respawnTime": 20
+		},
+		{
+			"name": "Ali",
+			"abilityNames": ["kill", "attack", "dodge"],
+			"maxHP": 800,
+			"moveAPCost": 1,
+			"respawnTime": 30
+		},
+		{
+			"name": "Omid",
+			"abilityNames": ["heal", "attack", "dodge"],
+			"maxHP": 800,
+			"moveAPCost": 2,
+			"respawnTime": 15
+		}
+	],
+	
+	"abilitiyConstants": [
+		{
+			"name": "suicide",
+			"type": "attack",
+			"range": 0,
+			"APCost": 30,
+			"cooldown": 15,
+			"areaOfEffect": 2,
+			"power": 300,
+			"isLobbing": false,
+			"isPiercing": false
+		},
+		{
+			"name": "kill",
+			"type": "attack",
+			"range": 2,
+			"APCost": 20,
+			"cooldown": 10,
+			"areaOfEffect": 0,
+			"power": 200,
+			"isLobbing": false,
+			"isPiercing": false
+		},
+		{
+			"name": "heal",
+			"type": "heal",
+			"range": 3,
+			"APCost": 15,
+			"cooldown": 12,
+			"areaOfEffect": 0,
+			"power": 150,
+			"isLobbing": false,
+			"isPiercing": false
+		},
+		{
+			"name": "attack",
+			"type": "attack",
+			"range": 1,
+			"APCost": 0,
+			"cooldown": 1,
+			"areaOfEffect": 0,
+			"power": 100,
+			"isLobbing": false,
+			"isPiercing": false
+		},
+		{
+			"name": "dodge",
+			"type": "dodge",
+			"range": 5,
+			"APCost": 30,
+			"cooldown": 20,
+			"areaOfEffect": 0,
+			"power": 0,
+			"isLobbing": true,
+			"isPiercing": false
+		}
+	]
+}
+]
