@@ -37,11 +37,4 @@ class StoppableThread(threading.Thread):
             time.sleep(0.5)
 
 
-a = 'salam'
-
-th = StoppableThread()
-th.run()
-time.sleep(5)
-th.stop()
-print('rad shod !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-th.__repr__()
+file = open("map.map")

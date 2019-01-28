@@ -38,7 +38,7 @@ class GameConstants:
         self.respawn_time = respawn_time
         self.max_turns = max_turns
         self.kill_score = kill_score
-        self.objective_zone_score = objective_zone_ score
+        self.objective_zone_score = objective_zone_score
 
 
 class Ability:
@@ -116,18 +116,21 @@ class World:
     _DEBUGGING_MODE = False
     _LOG_FILELPOINTER = None
 
-    def __init__(self, map, game_constants, ability_constants, hero_constants, my_heroes, opp_heroes,
-                 my_dead_heroes, ap, score):
+    def __init__(self, map=None, game_constants=None, ability_constants=None, hero_constants=None, my_heroes=None, opp_heroes= None,
+                 dead_heroes=None, ap = None, score= None):
         self.map = map
         self.game_constants = game_constants
         self.ability_constants = ability_constants
         self.hero_constants = hero_constants
         self.my_heroes = my_heroes
         self.opp_heroes = opp_heroes
-        self.my_dead_heroes = my_dead_heroes
+        self.dead_heroes = dead_heroes
         self.ap = ap
         self.score = score
         self.heroes = None
+        self.my_score = 0
+        self.opp_score = 0
+        self.current_phase = 'pick'
 
     def _handle_init_message(self, msg):
         if World._DEBUGGING_MODE:
@@ -135,10 +138,14 @@ class World:
                 World._LOG_FILE_POINTER = open("client.log", 'w')
             World._LOG_FILE_POINTER.write(str(msg))
             World._LOG_FILE_POINTER.write('\n')
-        self.game_constant_init(msg)
-        self.map_init(msg)
-        self.hero_init(msg)
+        msg = msg['args'][0]
+        self.game_constant_init(msg['gameConstant'])
+        self.map_init(msg["map"])
+        self.hero_init(msg["heroes"])
         self.ability_constants_init(msg)
+
+    def _handle_turn_message(self, msg):
+        msg = msg['args'][0]
 
     def ability_constants_init(self, msg):
         ability_list = msg["abilities"]
@@ -147,25 +154,23 @@ class World:
             ability_constant = AbilityConstants(dic["name"], self.get_type(dic["type"]), dic["range"], dic["APCost"]
                                                 , dic["cooldown"], dic["power"], dic["areaOfEffect"], dic["isLobbing"]
                                                 , dic["isPiercing"])  # todo : what is real format
-            abilities.__add__(ability_constant)
+            abilities.append(ability_constant)
         self.ability_constants = abilities
 
-    def hero_init(self, msg):
-        heroes_list = msg["heroes"]
+    def hero_init(self, heroes_list):
         heroes = []
         for step, h in enumerate(heroes_list):
             names = []
             for name in h["abilityNames"]:
-                names.__add__(name)
+                names.append(name)
             constant = HeroConstants(h["name"], names, h["maxHP"], h["moveAPCost"])
-            heroes.__add__(Hero(step, constant, None))
+            heroes.append(Hero(step, constant, None))
         self.heroes = heroes
 
-    def map_init(self, msg):
-        temp_map = msg["map"]
-        row_num = temp_map["rowNum"]
-        col_num = temp_map["columnNum"]
-        cells_map = temp_map["cells"]
+    def map_init(self, map):
+        row_num = map["rowNum"]
+        col_num = map["columnNum"]
+        cells_map = map["cells"]
         cells = [[0 for _ in range(row_num)] for _ in range(col_num)]
         objective_zone = []
         my_respawn_zone = []
@@ -177,17 +182,17 @@ class World:
                                            temp_cell["isInOppRespawnZone"],
                                            temp_cell["isInObjectZone"], False, row, col)
                 if c.is_objective_zone:
-                    objective_zone.__add__(c)
+                    objective_zone.append(c)
                 if c.is_in_my_respawn_zone:
-                    my_respawn_zone.__add__(c)
+                    my_respawn_zone.append(c)
                 if c.is_in_opp_respawn_zone:
-                    opp_respawn_zone.__add__(c)
+                    opp_respawn_zone.append(c)
         self.map = Map(row_num, col_num, cells, objective_zone, my_respawn_zone, opp_respawn_zone)
 
-    def game_constant_init(self, msg):
-        temp_map = msg["gameConstants"]
-        self.game_constants = GameConstants(temp_map["maxAP"], temp_map["timeout"],
-                                            temp_map["respawnTime"], temp_map["maxTurn"])
+    def game_constant_init(self, game_constants):
+        self.game_constants = GameConstants(game_constants["maxAP"], game_constants["timeout"],
+                                            game_constants["respawnTime"], game_constants["maxTurn"], game_constants["killScore"]
+                                            , game_constants["objectiveZoneScore"])
 
     def get_ability_constants(self, ability_name):
         for a in self.ability_constants:
@@ -225,7 +230,7 @@ class World:
             ability_constant = AbilityConstants(dic["name"], self.get_type(dic["type"]), dic["range"], dic["APCost"]
                                                 , dic["cooldown"], dic["power"], dic["areaOfEffect"], dic["isLobbing"]
                                                 , dic["isPiercing"])#todo : what is real format
-            abilities.__add__(ability_constant)
+            abilities.append(ability_constant)
         self.ability_constants = abilities
     def get_opp_hero(self, cell):
         for hero in self.opp_heroes:
@@ -261,11 +266,11 @@ class World:
                 continue
             last_cell = cell
             if self.is_affected(ability_constant, cell):
-                impact_cells.__add__(cell)
+                impact_cells.append(cell)
                 if not ability_constant.is_piercing:
                     break
         if not last_cell in impact_cells:
-            impact_cells.__add__(last_cell)
+            impact_cells.append(last_cell)
         return impact_cells
 
     def is_affected(self, ability_constant, cell):
@@ -407,7 +412,7 @@ class World:
         cells = self.get_impact_cells(ability_name, start_cell, end_cell)
         affected_cells = set()
         for cell in cells:
-            affected_cells.update(self.get_cells_in_aoe(cell, ability_constant.area_of.effect))
+            affected_cells.update(self.get_cells_in_aoe(cell, ability_constant.area_of_effect))
         if ability_constant.type == AbilityType.HEAL:
             return self.get_my_heroes_in_cells(cells)
         return self.get_opp_heroes_in_cells(cells)
@@ -417,7 +422,8 @@ class World:
         for cell in cells:
             hero = self.get_my_hero(cell)
             if hero:
-                heroes.__add__(hero)
+                heroes.append(hero)
+                heroes.ap
         return heroes
 
     def get_opp_heroes_in_cells(self, cells):
@@ -425,7 +431,7 @@ class World:
         for cell in cells:
             hero = self.get_opp_hero(cell)
             if hero:
-                heroes.__add__(hero)
+                heroes.append(hero)
         return heroes
 
 
