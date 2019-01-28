@@ -90,6 +90,8 @@ class Cell:
             return True
         return False
 
+    def __hash__(self):
+        return self.row*32 + self.column
 
 class Map:
     def __init__(self, row_num, column_num, cells, objective_zone, my_respawn_zone, opp_respawn_zone):
@@ -112,6 +114,11 @@ class Map:
             return None
 
 
+class Phase(Enum):
+    PICK, MOVE, ACTION = range(3)
+
+
+
 class World:
     _DEBUGGING_MODE = False
     _LOG_FILELPOINTER = None
@@ -131,7 +138,7 @@ class World:
         self.my_score = 0
         self.opp_score = 0
         self.current_phase = 'pick'
-
+        self.current_turn = 0
     def _handle_init_message(self, msg):
         if World._DEBUGGING_MODE:
             if World._LOG_FILE_POINTER is None:
@@ -142,13 +149,17 @@ class World:
         self.game_constant_init(msg['gameConstant'])
         self.map_init(msg["map"])
         self.hero_init(msg["heroes"])
-        self.ability_constants_init(msg)
+        self.ability_constants_init(msg["abilities"])
 
     def _handle_turn_message(self, msg):
         msg = msg['args'][0]
+        self.my_score = msg["myScore"]
+        self.opp_score = msg["oppScore"]
+        self.current_phase = self._get_phase(msg["currentPhase"])
+        self.current_turn = msg["currentTurn"]
+        self._update_map(msg["map"])
+    def ability_constants_init(self, ability_list):
 
-    def ability_constants_init(self, msg):
-        ability_list = msg["abilities"]
         abilities = []
         for dic in ability_list:
             ability_constant = AbilityConstants(dic["name"], self.get_type(dic["type"]), dic["range"], dic["APCost"]
@@ -156,6 +167,14 @@ class World:
                                                 , dic["isPiercing"])  # todo : what is real format
             abilities.append(ability_constant)
         self.ability_constants = abilities
+
+    def _get_phase(self, param):
+        if param == "pick":
+            return Phase.PICK
+        if param == "move":
+            return Phase.MOVE
+        else:
+            return Phase.ACTION
 
     def hero_init(self, heroes_list):
         heroes = []
@@ -403,7 +422,7 @@ class World:
                 if not self.map.is_in_map(row, col):
                     continue
                 if self.manhattan_distance(cell, self.map.get_cell(row, col)) <= area_of_effect:
-                    cells += self.map.get_cell(row, col)
+                    cells.append(self.map.get_cell(row, col))
         return cells
 
     def get_ability_targets(self, ability_name, start_cell, end_cell):
@@ -433,6 +452,18 @@ class World:
             if hero:
                 heroes.append(hero)
         return heroes
+
+    def _update_map(self, cells_map):
+        cells = [[0 for _ in range(self.map.row_num)] for _ in range(self.map.column_num)]
+        objective_zone = []
+        my_respawn_zone = []
+        opp_respawn_zone = []
+        for row in range(int(self.map.row_num)):
+            for col in range(int(self.map.column_num)):
+                temp_cell = cells_map[row][col]
+                cells[row][col] = Cell(temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
+                                           temp_cell["isInOppRespawnZone"],
+                                           temp_cell["isInObjectZone"], temp_cell["isInVision"], row, col)
 
 
 #     void castAbility(int id, Ability ability, Cell targetCell);
