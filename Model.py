@@ -297,7 +297,7 @@ class World:
             for delta_col in range(-1, 2):
                 if not self.is_accessible(current.row + delta_row, current.column + delta_col):
                     continue
-                possible_next_cell = self.map.get_cell(current.row + delta_row, current.col + delta_col)
+                possible_next_cell = self.map.get_cell(current.row + delta_row, current.column + delta_col)
                 if former == possible_next_cell:
                     continue
                 if current == possible_next_cell:
