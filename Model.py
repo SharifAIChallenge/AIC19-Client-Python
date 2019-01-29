@@ -279,15 +279,15 @@ class World:
     def get_impact_cells(self, ability_name, start_cell, target_cell):
         ability_constant = self.get_ability_constants(ability_name)
         if ability_constant.is_lobbing:
-            return target_cell
+            return [target_cell]
         if start_cell.is_wall or start_cell == target_cell:
-            return start_cell
+            return [start_cell]
         last_cell = None
-        rey_cells = self.get_ray_cells(start_cell, start_cell)
+        rey_cells = self.get_ray_cells(start_cell, target_cell)
         impact_cells = []
 
         for cell in rey_cells:
-            if self.manhattan_distance(cell, start_cell):
+            if self.manhattan_distance(cell, start_cell) > ability_constant.range:
                 continue
             last_cell = cell
             if self.is_affected(ability_constant, cell):
@@ -299,8 +299,8 @@ class World:
         return impact_cells
 
     def is_affected(self, ability_constant, cell):
-        return (self.get_opp_hero(cell) != None and not ability_constant.type == AbilityType.HEAL) or (
-                self.get_my_hero(cell) != None and ability_constant.type == AbilityType.HEAL)
+        return (self.get_opp_hero(cell) is not None and not ability_constant.type == AbilityType.HEAL) or (
+                self.get_my_hero(cell) is not  None and ability_constant.type == AbilityType.HEAL)
 
     def manhattan_distance(self, start_cell, end_cell):
         import math
@@ -319,14 +319,14 @@ class World:
 
     def calculate_neighbour(self, start, target, current, former):
         if start.row == target.row:
-            if start.row != current.row:
+            if start.row is not current.row:
                 return None
             if start.column > target.column:
                 return self.map.get_cell(current.row, current.column - 1)
             else:
                 return self.map.get_cell(current.row, current.column + 1)
         if start.column == target.column:
-            if start.column != current.column:
+            if start.column is not current.column:
                 return None
             if start.row > target.row:
                 return self.map.get_cell(current.row - 1, current.column)

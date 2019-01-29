@@ -13,8 +13,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="358">
-              <caret line="162" selection-start-line="162" selection-end-line="162" />
+            <state>
+              <caret lean-forward="true" />
               <folding>
                 <element signature="e#53#57#0" />
                 <element signature="e#148#216#0" />
@@ -103,6 +103,9 @@
       <find>area_of_effect</find>
       <find>area_of.</find>
       <find>.update</find>
+      <find>__</find>
+      <find>+=</find>
+      <find>not</find>
     </findStrings>
     <replaceStrings>
       <replace>dead_heroes</replace>
@@ -184,7 +187,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="73" y="27" width="1847" height="1053" extended-state="6" />
+    <frame x="73" y="27" width="1847" height="1053" extended-state="7" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.17379233" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -252,8 +255,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="358">
-          <caret line="162" selection-start-line="162" selection-end-line="162" />
+        <state>
+          <caret lean-forward="true" />
           <folding>
             <element signature="e#53#57#0" />
             <element signature="e#148#216#0" />
