@@ -429,6 +429,7 @@ class World:
                 result += [parent[0]]
                 current = parent[1]
                 parent = parents[current.row][current.column]
+           result += [parent[0]]
            return list(reversed(result))
         return None
 
@@ -439,13 +440,13 @@ class World:
         if current is target:
             return True
         for direction in Direction:
-            next = self.get_next_cell(cell, direction)
-            if next is not None:
-                if not visited [next.row][next.column]:
-                    queue += [next]
-                    parent[next.row][next.column] = [direction, current]
-                    visited[next.row][next.column] = True
-        return bfs(parents, visited, queue[1:], target)
+            neighbour = self.get_next_cell(current, direction)
+            if neighbour is not None:
+                if not visited [neighbour.row][neighbour.column]:
+                    queue += [neihgbour]
+                    parents[neighbour.row][neighbour.column] = [direction, current]
+                    visited[neighbour.row][neighbour.column] = True
+        return self.bfs(parents, visited, queue[1:], target)
 
 
     def get_cells_in_aoe(self, cell, area_of_effect):
