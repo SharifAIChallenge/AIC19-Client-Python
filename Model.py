@@ -294,7 +294,7 @@ class World:
                 impact_cells.append(cell)
                 if not ability_constant.is_piercing:
                     break
-        if not last_cell in impact_cells:
+        if  last_cell not in impact_cells:
             impact_cells.append(last_cell)
         return impact_cells
 
