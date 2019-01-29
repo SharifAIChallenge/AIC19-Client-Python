@@ -42,9 +42,10 @@ class GameConstants:
 
 
 class Ability:
-    def __init__(self, ability_constants ):
+    def __init__(self, ability_constants):
         self.ability_constants = ability_constants
         self.rem_cooldown = 0
+
 
 class HeroConstants:
     def __init__(self, hero_name, ability_names, max_hp, move_ap_cost):
@@ -91,7 +92,8 @@ class Cell:
         return False
 
     def __hash__(self):
-        return self.row*32 + self.column
+        return self.row * 32 + self.column
+
 
 class Map:
     def __init__(self, row_num, column_num, cells, objective_zone, my_respawn_zone, opp_respawn_zone):
@@ -103,7 +105,7 @@ class Map:
         self.opp_respawn_zone = opp_respawn_zone
 
     def is_in_map(self, row, column):
-        if (0 <= row < self.row_num and 0 <= column < self.column_num):
+        if 0 <= row < self.row_num and 0 <= column < self.column_num:
             return True
         return False
 
@@ -118,13 +120,12 @@ class Phase(Enum):
     PICK, MOVE, ACTION = range(3)
 
 
-
 class World:
     _DEBUGGING_MODE = False
     _LOG_FILELPOINTER = None
 
-    def __init__(self, map=None, game_constants=None, ability_constants=None, hero_constants=None, my_heroes=None, opp_heroes= None,
-                 dead_heroes=None, ap = None, score= None):
+    def __init__(self, map=None, game_constants=None, ability_constants=None, hero_constants=None, my_heroes=None,
+                 opp_heroes=None,dead_heroes=None, ap=None, score=None):
         self.map = map
         self.game_constants = game_constants
         self.ability_constants = ability_constants
@@ -139,6 +140,7 @@ class World:
         self.opp_score = 0
         self.current_phase = 'pick'
         self.current_turn = 0
+
     def _handle_init_message(self, msg):
         if World._DEBUGGING_MODE:
             if World._LOG_FILE_POINTER is None:
@@ -158,6 +160,7 @@ class World:
         self.current_phase = self._get_phase(msg["currentPhase"])
         self.current_turn = msg["currentTurn"]
         self._update_map(msg["map"])
+
     def ability_constants_init(self, ability_list):
 
         abilities = []
@@ -168,7 +171,8 @@ class World:
             abilities.append(ability_constant)
         self.ability_constants = abilities
 
-    def _get_phase(self, param):
+    @staticmethod
+    def _get_phase(param):
         if param == "pick":
             return Phase.PICK
         if param == "move":
@@ -210,7 +214,8 @@ class World:
 
     def game_constant_init(self, game_constants):
         self.game_constants = GameConstants(game_constants["maxAP"], game_constants["timeout"],
-                                            game_constants["respawnTime"], game_constants["maxTurn"], game_constants["killScore"]
+                                            game_constants["respawnTime"], game_constants["maxTurn"],
+                                            game_constants["killScore"]
                                             , game_constants["objectiveZoneScore"])
 
     def get_ability_constants(self, ability_name):
@@ -248,9 +253,10 @@ class World:
         for dic in ability_list:
             ability_constant = AbilityConstants(dic["name"], self.get_type(dic["type"]), dic["range"], dic["APCost"]
                                                 , dic["cooldown"], dic["power"], dic["areaOfEffect"], dic["isLobbing"]
-                                                , dic["isPiercing"])#todo : what is real format
+                                                , dic["isPiercing"])  # todo : what is real format
             abilities.append(ability_constant)
         self.ability_constants = abilities
+
     def get_opp_hero(self, cell):
         for hero in self.opp_heroes:
             if hero.current_cell == cell:
@@ -462,8 +468,8 @@ class World:
             for col in range(int(self.map.column_num)):
                 temp_cell = cells_map[row][col]
                 cells[row][col] = Cell(temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
-                                           temp_cell["isInOppRespawnZone"],
-                                           temp_cell["isInObjectZone"], temp_cell["isInVision"], row, col)
+                                       temp_cell["isInOppRespawnZone"],
+                                       temp_cell["isInObjectZone"], temp_cell["isInVision"], row, col)
 
 
 #     void castAbility(int id, Ability ability, Cell targetCell);
