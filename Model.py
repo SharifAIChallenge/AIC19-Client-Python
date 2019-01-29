@@ -416,10 +416,37 @@ class World:
         return None
 
     def get_path_move_directions(self, start_cell, end_cell):
-        pass
+        if start_cell == end_cell:
+            return []
+        parents = [[None for _ in range(self.map.column_num)] for _ in range(self.map.row_num)]
+        queue = [start_cell]
+        visited = [[False for _ in range(self.map.column_num)] for _ in range(self.map.row_num)]
+        visited[start_cell.row][start_cell.column] = True
+        if self.bfs(parents, visited, queue, end_cell):
+            result = []
+            parent = parents[end_cell.row][end_cell.column]
+            while parent[1] is not start_cell:
+                result += [parent[0]]
+                current = parent[1]
+                parent = parents[current.row][current.column]
+           return list(reversed(result))
+        return None
 
-    def bfs(self):
-        pass
+    def bfs(self, parents, visited, queue, target):
+        if len(queue) == 0:
+            return False
+        current = queue[0]
+        if current is target:
+            return True
+        for direction in Direction:
+            next = self.get_next_cell(cell, direction)
+            if next is not None:
+                if not visited [next.row][next.column]:
+                    queue += [next]
+                    parent[next.row][next.column] = [direction, current]
+                    visited[next.row][next.column] = True
+        return bfs(parents, visited, queue[1:], target)
+
 
     def get_cells_in_aoe(self, cell, area_of_effect):
         cells = []
