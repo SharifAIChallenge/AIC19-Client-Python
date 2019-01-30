@@ -68,11 +68,17 @@ class Controller():
             
     def do_turn(self):
         end_message = self.world._get_end_message()
-        self.turn_num += 1
-        if self.turn_num % 10 == 0:
-            self.client.complex_turn(self.world)
+        t = None
+        if self.turn_num == 0:
+            t = threading.Thread(target=lambda: self.client.preprocess(self.world))
+        if self.turn_num < 4:
+            t = threading.Thread(target=lambda: self.client.pick(self.world))
+        elif self.turn_num % 2 == 0:
+            t = threading.Thread(target=lambda: self.client.move(self.world))
         else:
-            self.client.simple_turn(self.world)
+            t = threading.Thread(target=lambda: self.client.action(self.world))
+        t.start()
+        self.turn_num += 1
         self.world.end_turn(end_message)
 
 
