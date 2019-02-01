@@ -78,9 +78,9 @@ class Controller():
         if self.turn_num == 0:
             t = threading.Thread(target=launch_on_thread(self.client.preprocess))
         if self.turn_num < 4:
-            t = threading.Thread(target=launch_on_thread(self.pick.preprocess))
+            t = threading.Thread(target=launch_on_thread(self.client.pick))
         elif self.turn_num % 2 == 0:
-            t = threading.Thread(target=launch_on_thread(self.move.preprocess))
+            t = threading.Thread(target=launch_on_thread(self.client.move))
         else:
             t = threading.Thread(target=launch_on_thread(self.client.action))
         t.start()
