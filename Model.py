@@ -206,8 +206,8 @@ class World:
         opp_heroes = msg["oppHeroes"]
         self._update_heroes(my_heroes)
         self._update_heroes(opp_heroes)
-        self._handle_casted_ability(msg[], "my")
-        self._handle_casted_ability(msg[], "opp")
+        self._handle_casted_ability(msg["my_casted_abilities"], "my")
+        self._handle_casted_ability(msg["opp_casted_abilities"], "opp")
 
     def _handle_casted_ability(self, casted_abilities, my_or_opp):
         casted_list = []
