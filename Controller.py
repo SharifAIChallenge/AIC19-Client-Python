@@ -67,21 +67,23 @@ class Controller():
         elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_SHUTDOWN:
             self.terminate()
             
+    def launch_on_thread(self, action):
+        action(self.world)
+        self.turn_num += 1
+        self.world.end_turn(end_message)
+            
     def do_turn(self):
         end_message = self.world._get_end_message()
         t = None
         if self.turn_num == 0:
-            t = threading.Thread(target=lambda: self.client.preprocess(self.world))
+            t = threading.Thread(target=launch_on_thread(self.client.preprocess))
         if self.turn_num < 4:
-            t = threading.Thread(target=lambda: self.client.pick(self.world))
+            t = threading.Thread(target=launch_on_thread(self.pick.preprocess))
         elif self.turn_num % 2 == 0:
-            t = threading.Thread(target=lambda: self.client.move(self.world))
+            t = threading.Thread(target=launch_on_thread(self.move.preprocess))
         else:
-            t = threading.Thread(target=lambda: self.client.action(self.world))
+            t = threading.Thread(target=launch_on_thread(self.client.action))
         t.start()
-        self.turn_num += 1
-        self.world.end_turn(end_message)
-
 
 
 c = Controller()
