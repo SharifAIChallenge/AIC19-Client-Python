@@ -286,18 +286,17 @@ class World:
                 return hero
         return None
 
-    def get_my_hero(self, cell):
-        for hero in self.my_heroes:
-            if hero.current_cell == cell:
-                return hero
-        return None
-
-    def get_my_hero(self, row, column):
-        if not self.map.is_in_map(row, column):
-            return None
-        for hero in self.my_heroes:
-            if hero.current_cell.row == row and hero.current_cell.column == column:
-                return hero
+    def get_my_hero(self, cell=None, row=None, column=None):
+        if cell is not None and row is None and column is None:
+            for hero in self.my_heroes:
+                if hero.current_cell == cell:
+                    return hero
+        elif row is not None and column is not None and cell is None:
+            if not self.map.is_in_map(row, column):
+                return None
+            for hero in self.my_heroes:
+                if hero.current_cell.row == row and hero.current_cell.column == column:
+                    return hero
         return None
 
         ability_list = msg["abilities"]
