@@ -6,6 +6,7 @@
         <list>
           <option value="range" />
           <option value="type" />
+          <option value="map" />
         </list>
       </option>
     </inspection_tool>

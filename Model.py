@@ -33,7 +33,7 @@ class AbilityConstants:
 
 
 class GameConstants:
-    def __init__(self, max_ap, timeout, respawn_time, max_turns, kill_score, objective_zone_score):
+    def __init__(self, max_ap, timeout, respawn_time, max_turns, kill_score, objective_zone_score, max_score):
         self.max_ap = max_ap
         self.timeout = timeout
         self.respawn_time = respawn_time
@@ -45,7 +45,6 @@ class GameConstants:
 class Ability:
     def __init__(self, ability_constants):
         self.ability_constants = ability_constants
-        self.rem_cooldown = 0
 
 
 class HeroConstants:
@@ -57,15 +56,16 @@ class HeroConstants:
 
 
 class Hero:
-    def __init__(self, hero_id,hero_constant, abilities, respawnTime= None, recent_path = None, cooldowns = None):
+    def __init__(self, hero_id, hero_constant, abilities, respawnTime=None, recent_path=None, cooldowns=None):
         self.id = hero_id
         self.abilities = abilities
         self.constants = hero_constant
         self.current_cell = None
-        self.recent_path = None
+        self.recent_path = recent_path
         self.respawnTime = respawnTime
         self.recent_path = recent_path
         self.cooldowns = cooldowns
+        self.current_hp = 0
 
     def __eq__(self, other):
         if type(self) is type(other):
@@ -76,7 +76,7 @@ class Hero:
         return self.id
 
 
-class cooldown:
+class Cooldown:
     def __init__(self, name, remCooldown):
         self.name = name
         self.remCooldown
@@ -128,12 +128,21 @@ class Phase(Enum):
     PICK, MOVE, ACTION = range(3)
 
 
+class CastedAbility:
+    def __init__(self, caster_id, targeted_ids, start_cell, end_cell, ability_name):
+        self.caster_id = caster_id
+        self.targeted_ids = targeted_ids
+        self.start_cell = start_cell
+        self.end_cell = end_cell
+        self.ability_name = ability_name
+
+
 class World:
     _DEBUGGING_MODE = False
     _LOG_FILELPOINTER = None
 
     def __init__(self, map=None, game_constants=None, ability_constants=None, hero_constants=None, my_heroes=None,
-                 opp_heroes=None, dead_heroes=None, ap=None, score=None):
+                 opp_heroes=None, dead_heroes=None, ap=None, score=None, world = None):
         self.map = map
         self.game_constants = game_constants
         self.ability_constants = ability_constants
@@ -142,12 +151,16 @@ class World:
         self.opp_heroes = opp_heroes
         self.dead_heroes = dead_heroes
         self.ap = ap
-        self.score = score
         self.heroes = None
         self.my_score = 0
         self.opp_score = 0
         self.current_phase = 'pick'
         self.current_turn = 0
+        if world is not None:
+            self.game_constants = world.game_constants
+            self.hero_constants = world.hero_constants
+            self.ability_constants = world.ability_constants
+            self.map = world.map
 
     def _handle_init_message(self, msg):
         if World._DEBUGGING_MODE:
@@ -160,8 +173,6 @@ class World:
         self.map_init(msg["map"])
         self.hero_init(msg["heroes"])
         self.ability_constants_init(msg["abilities"])
-
-
 
     def _handle_pick_message(self, msg):
         msg = msg['args'][0]
@@ -182,11 +193,6 @@ class World:
                     my_hero.id = hero["id"]
                     self.opp_heroes.append(my_heroes)
 
-    def _update_heroes(self, heroes_list, my_or_opp):
-        new_list = []
-        for hero in heroes_list:
-            new_list.append(Hero(hero["id"], ), )
-
     def _handle_turn_message(self, msg):
         msg = msg['args'][0]
         self.my_score = msg["myScore"]
@@ -196,7 +202,31 @@ class World:
         self._update_map(msg["map"])
         my_heroes = msg["myHeroes"]
         opp_heroes = msg["oppHeroes"]
+        self._update_heroes(my_heroes)
+        self._update_heroes(opp_heroes)
 
+
+    def _create_casted_ability(self, casted_abilities):
+
+
+    def _update_heroes(self, heroes_list):
+        for new_hero in heroes_list:
+            id = new_hero["id"]
+            hero = self.get_hero(id)
+            hero.current_hp = new_hero["currentHP"]
+            cooldown_list = []
+            cooldowns =new_hero["cooldowns"]
+            for cooldown in cooldowns:
+                cd = Cooldown(cooldown["name"], cooldown["remCooldown"])
+                cooldown_list.append(cd)
+            hero.cooldowns = cooldown_list
+            hero.current_cell = self.map.get_cell(new_hero["currentCell"]["row"],
+                                                  new_hero["currentCell"]["column"])
+            recent_path = []
+            for recent in new_hero["recentPath"]:
+                recent_path.append(self.map.get_cell(recent["row"], recent["column"]))
+            hero.recent_path = recent_path
+            hero.respawn_time = new_hero["respawnTime"]
 
     def _update_map(self, cells_map):
         cells = [[0 for _ in range(self.map.row_num)] for _ in range(self.map.column_num)]
@@ -268,7 +298,7 @@ class World:
         self.game_constants = GameConstants(game_constants["maxAP"], game_constants["timeout"],
                                             game_constants["respawnTime"], game_constants["maxTurn"],
                                             game_constants["killScore"]
-                                            , game_constants["objectiveZoneScore"])
+                                            , game_constants["objectiveZoneScore"], game_constants["maxScore"])
 
     def get_ability_constants(self, ability_name):
         for a in self.ability_constants:
@@ -282,6 +312,9 @@ class World:
 
     def get_hero(self, id):
         for hero in self.my_heroes:
+            if hero.id == id:
+                return hero
+        for hero in self.opp_heroes:
             if hero.id == id:
                 return hero
         return None
@@ -299,15 +332,6 @@ class World:
             if hero.current_cell.row == row and hero.current_cell.column == column:
                 return hero
         return None
-
-        ability_list = msg["abilities"]
-        abilities = []
-        for dic in ability_list:
-            ability_constant = AbilityConstants(dic["name"], self.get_type(dic["type"]), dic["range"], dic["APCost"]
-                                                , dic["cooldown"], dic["power"], dic["areaOfEffect"], dic["isLobbing"]
-                                                , dic["isPiercing"])  # todo : what is real format
-            abilities.append(ability_constant)
-        self.ability_constants = abilities
 
     def get_opp_hero(self, cell):
         for hero in self.opp_heroes:
