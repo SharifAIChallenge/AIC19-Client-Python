@@ -161,6 +161,8 @@ class World:
             self.hero_constants = world.hero_constants
             self.ability_constants = world.ability_constants
             self.map = world.map
+        self.my_casted_ability = []
+        self.opp_casted_ability = []
 
     def _handle_init_message(self, msg):
         if World._DEBUGGING_MODE:
@@ -204,9 +206,23 @@ class World:
         opp_heroes = msg["oppHeroes"]
         self._update_heroes(my_heroes)
         self._update_heroes(opp_heroes)
+        self._handle_casted_ability(msg[], "my")
+        self._handle_casted_ability(msg[], "opp")
 
-
-    def _create_casted_ability(self, casted_abilities):
+    def _handle_casted_ability(self, casted_abilities, my_or_opp):
+        casted_list = []
+        for casted_ability in casted_abilities:
+            targeted_list = []
+            for target in casted_ability["targetHeroIds"]:
+                targeted_list.append(target)
+            casted_list.append(CastedAbility(casted_ability["casterId"], targeted_list,
+                                             self.map.get_cell(casted_ability["startCell"]["row"],casted_ability["startCell"]["column"] ),
+                                             self.map.get_cell(casted_ability["endCell"]["row"], casted_ability["endCell"]["column"]),
+                                             casted_ability["abilityName"]))
+        if my_or_opp == "my":
+            self.my_casted_ability = casted_list
+        elif my_or_opp == "opp":
+            self.opp_casted_ability = casted_list
 
 
     def _update_heroes(self, heroes_list):
