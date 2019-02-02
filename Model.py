@@ -232,8 +232,9 @@ class World:
 
     def _update_heroes(self, heroes_list):
         for new_hero in heroes_list:
-            hero_id = new_hero["id"]
-            hero = self.get_hero(hero_id)
+            hero_name = new_hero["type"]
+            hero = copy.copy(self.get_hero(hero_name))
+            hero.id = new_hero["id"]
             hero.current_hp = new_hero["currentHP"]
             cooldown_list = []
             cooldowns = new_hero["cooldowns"]
@@ -336,9 +337,9 @@ class World:
             if hero_name == h.name:
                 return h
 
-    def get_hero(self, hero_id):
+    def get_hero(self, hero_type):
         for hero in self.heroes:
-            if hero.id == hero_id:
+            if hero.type == hero_type:
                 return hero
         return None
 
