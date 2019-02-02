@@ -211,7 +211,7 @@ class World:
         self._update_heroes(my_heroes)
         self._update_heroes(opp_heroes)
         self._handle_casted_ability(msg["myCastAbilities"], "my")
-        self._handle_casted_ability(msg["oppCastedAbilities"], "opp")
+        self._handle_casted_ability(msg["oppCastAbilities"], "opp")
 
     def _handle_casted_ability(self, casted_abilities, my_or_opp):
         casted_list = []
@@ -240,10 +240,13 @@ class World:
             cooldowns = new_hero["cooldowns"]
             for cooldown in cooldowns:
                 cd = Cooldown(cooldown["name"], cooldown["remCooldown"])
-                cooldown_list.append(cd)
+                cooldown_list.append(cd)  # FIXME GOD DAMN IT WHAT THE FUCK IS THIS?!
             hero.cooldowns = cooldown_list
-            hero.current_cell = self.map.get_cell(new_hero["currentCell"]["row"],
-                                                  new_hero["currentCell"]["column"])
+            if "currentCell" not in new_hero:
+                hero.current_cell = Cell(is_wall=False, is_in_my_respawn_zone=False, is_in_opp_respawn_zone=False,
+                                         is_in_objective_zone=False, is_in_vision=False, row=-1, column=-1)
+            else:
+                hero.current_cell = self.map.get_cell(new_hero["currentCell"]["row"], new_hero["currentCell"]["column"])
             recent_path = []
             for recent in new_hero["recentPath"]:
                 recent_path.append(self.map.get_cell(recent["row"], recent["column"]))
@@ -339,7 +342,7 @@ class World:
 
     def get_hero(self, hero_type):
         for hero in self.heroes:
-            if hero.type == hero_type:
+            if hero.constants.name == hero_type:
                 return hero
         return None
 
