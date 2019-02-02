@@ -142,7 +142,7 @@ class World:
     _LOG_FILELPOINTER = None
 
     def __init__(self, map=None, game_constants=None, ability_constants=None, hero_constants=None, my_heroes=None,
-                 opp_heroes=None, dead_heroes=None, ap=None, score=None, world = None):
+                 opp_heroes=None, dead_heroes=None, ap=None, score=None, world=None):
         self.map = map
         self.game_constants = game_constants
         self.ability_constants = ability_constants
@@ -206,8 +206,8 @@ class World:
         opp_heroes = msg["oppHeroes"]
         self._update_heroes(my_heroes)
         self._update_heroes(opp_heroes)
-        self._handle_casted_ability(msg[], "my")
-        self._handle_casted_ability(msg[], "opp")
+        self._handle_casted_ability(msg["myCastedAbilities"], "my")
+        self._handle_casted_ability(msg["oppCastedAbilities"], "opp")
 
     def _handle_casted_ability(self, casted_abilities, my_or_opp):
         casted_list = []
@@ -216,14 +216,15 @@ class World:
             for target in casted_ability["targetHeroIds"]:
                 targeted_list.append(target)
             casted_list.append(CastedAbility(casted_ability["casterId"], targeted_list,
-                                             self.map.get_cell(casted_ability["startCell"]["row"],casted_ability["startCell"]["column"] ),
-                                             self.map.get_cell(casted_ability["endCell"]["row"], casted_ability["endCell"]["column"]),
+                                             self.map.get_cell(casted_ability["startCell"]["row"],
+                                                               casted_ability["startCell"]["column"]),
+                                             self.map.get_cell(casted_ability["endCell"]["row"],
+                                                               casted_ability["endCell"]["column"]),
                                              casted_ability["abilityName"]))
         if my_or_opp == "my":
             self.my_casted_ability = casted_list
         elif my_or_opp == "opp":
             self.opp_casted_ability = casted_list
-
 
     def _update_heroes(self, heroes_list):
         for new_hero in heroes_list:
@@ -231,7 +232,7 @@ class World:
             hero = self.get_hero(id)
             hero.current_hp = new_hero["currentHP"]
             cooldown_list = []
-            cooldowns =new_hero["cooldowns"]
+            cooldowns = new_hero["cooldowns"]
             for cooldown in cooldowns:
                 cd = Cooldown(cooldown["name"], cooldown["remCooldown"])
                 cooldown_list.append(cd)
@@ -604,7 +605,7 @@ class ServerConstants:
     MESSAGE_TYPE_INIT = "init"
     MESSAGE_TYPE_SHUTDOWN = "shutdown"
     MESSAGE_TYPE_TURN = "turn"
-
+    MESSAGE_TYPE_PICK = "pick"
     CHANGE_TYPE_ADD = "a"
     CHANGE_TYPE_DEL = "d"
     CHANGE_TYPE_MOV = "m"

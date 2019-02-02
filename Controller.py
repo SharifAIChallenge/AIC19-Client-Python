@@ -61,8 +61,9 @@ class Controller():
     def handle_message(self, message):
         if message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_INIT:
             self.world._handle_init_message(message)
-        elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_TURN:
-            self.world._handle_turn_message(message)
+            self.do_turn()
+        elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_PICK:
+            self.world._handle_pick_message(message)
             self.do_turn()
         elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_SHUTDOWN:
             self.terminate()
