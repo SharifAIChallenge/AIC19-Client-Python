@@ -133,7 +133,9 @@ class Map:
 
 
 class Phase(Enum):
-    PICK, MOVE, ACTION = range(3)
+    PICK = "PICK"
+    MOVE = "MOVE"
+    ACTION = "ACTION"
 
 
 class CastedAbility:
@@ -277,9 +279,9 @@ class World:
 
     @staticmethod
     def _get_phase(param):
-        if param == "pick":
+        if param == "PICK":
             return Phase.PICK
-        if param == "move":
+        if param == "MOVE":
             return Phase.MOVE
         else:
             return Phase.ACTION
