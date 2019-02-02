@@ -573,7 +573,7 @@ class World:
     def get_my_heroes_in_cells(self, cells):
         heroes = []
         for cell in cells:
-            hero = self.get_my_hero(cell)
+            hero = self.get_my_hero(cell = cell)
             if hero:
                 heroes.append(hero)
         return heroes
