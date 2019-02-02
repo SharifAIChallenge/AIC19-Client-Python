@@ -1,9 +1,12 @@
 class AI:
-    def preprocess(world):
+    def preprocess(self, world):
         pass
-    def pick(world):
+
+    def pick(self, world):
         pass
-    def move(world):
+
+    def move(self, world):
         pass
-    def action(world):
+
+    def action(self, world):
         pass

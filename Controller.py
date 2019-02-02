@@ -10,13 +10,13 @@ from threading import Thread
 from queue import Queue
 
 
-class Controller():
+class Controller:
     def __init__(self):
         self.sending_flag = True
         self.conf = {}
         self.network = None
         self.queue = Queue()
-        self.world = World(self.queue)
+        self.world = World(queue=self.queue)
         self.client = AI()
         self.argNames = ["AICHostIP", "AICHostPort", "AICToken", "AICRetryDelay"]
         self.argDefaults = ["127.0.0.1", 7099, "00000000000000000000000000000000", "1000"]
@@ -43,9 +43,9 @@ class Controller():
         Thread(target=run, daemon=True).start()
 
     def terminate(self):
-        if World._LOG_FILE_POINTER is not None:
-            World._LOG_FILE_POINTER.flush()
-            World._LOG_FILE_POINTER.close()
+        # if World._LOG_FILE_POINTER is not None:
+        #     World._LOG_FILE_POINTER.flush()
+        #     World._LOG_FILE_POINTER.close() TODO check these comments
         print("finished!")
         self.network.close()
         self.sending_flag = False
@@ -59,30 +59,41 @@ class Controller():
                 self.conf[self.argNames[i]] = os.environ.get(self.argNames[i])
 
     def handle_message(self, message):
+        print(message[ServerConstants.KEY_NAME])
         if message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_INIT:
             self.world._handle_init_message(message)
-            self.do_turn()
+            threading.Thread(target=self.client.preprocess(self.world)).start()
         elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_PICK:
-            self.world._handle_pick_message(message)
-            self.do_turn()
+            new_world = World(world=self.world)
+            new_world._handle_pick_message(message)
+            threading.Thread(target=self.launch_on_thread(self.client.pick, new_world)).start()
+        elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_TURN:
+            new_world = World(world=self.world)
+            new_world._handle_turn_message(message)
+            if new_world.current_phase == Phase.MOVE:
+                threading.Thread(target=self.launch_on_thread(self.client.move, new_world)).start()
+            elif new_world.current_phase == Phase.ACTION:
+                threading.Thread(target=self.launch_on_thread(self.client.action, new_world)).start()
         elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_SHUTDOWN:
             self.terminate()
             
-    def do_turn(self):
-        end_message = self.world._get_end_message()
-        t = None
-        if self.turn_num == 0:
-            t = threading.Thread(target=lambda: self.client.preprocess(self.world))
-        if self.turn_num < 4:
-            t = threading.Thread(target=lambda: self.client.pick(self.world))
-        elif self.turn_num % 2 == 0:
-            t = threading.Thread(target=lambda: self.client.move(self.world))
-        else:
-            t = threading.Thread(target=lambda: self.client.action(self.world))
-        t.start()
-        self.turn_num += 1
-        self.world.end_turn(end_message)
+    def launch_on_thread(self, action, new_world):
+        action(self.world)
+        new_world.queue.put(Event('end', [new_world.current_turn]))
+        print("end sent on turn " + str(new_world.current_turn))
+        # self.turn_num += 1
 
+            
+    # def do_turn(self):
+    #     if self.turn_num == 0:
+    #         t = threading.Thread(target=self.launch_on_thread(self.client.preprocess))
+    #     if self.turn_num < 4:
+    #         t = threading.Thread(target=self.launch_on_thread(self.client.pick))
+    #     elif self.turn_num % 2 == 0:
+    #         t = threading.Thread(target=self.launch_on_thread(self.client.move))
+    #     else:
+    #         t = threading.Thread(target=self.launch_on_thread(self.client.action))
+    #     t.start()
 
 
 c = Controller()
