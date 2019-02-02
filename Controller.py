@@ -21,6 +21,7 @@ class Controller:
         self.argNames = ["AICHostIP", "AICHostPort", "AICToken", "AICRetryDelay"]
         self.argDefaults = ["127.0.0.1", 7099, "00000000000000000000000000000000", "1000"]
         self.turn_num = 0
+        self.preprocess_flag = False
 
     def start(self):
         self.read_settings()
@@ -61,7 +62,6 @@ class Controller:
     def handle_message(self, message):
         if message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_INIT:
             self.world._handle_init_message(message)
-            threading.Thread(target=self.client.preprocess(self.world)).start()
         elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_PICK:
             new_world = World(world=self.world)
             new_world._handle_pick_message(message)
@@ -77,9 +77,11 @@ class Controller:
             self.terminate()
             
     def launch_on_thread(self, action, new_world):
+        if not self.preprocess_flag:
+            self.client.preprocess(new_world)
+            self.preprocess_flag = True
         action(self.world)
         new_world.queue.put(Event('end', [new_world.current_turn]))
-        print("end sent on turn " + str(new_world.current_turn))
         # self.turn_num += 1
 
             
