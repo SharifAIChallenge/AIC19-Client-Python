@@ -1,0 +1,13 @@
+
+mpython:S3776Ó"TRefactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed.(•”ëÈ
+rpython:S3776œ"TRefactor this function to reduce its Cognitive Complexity from 52 to the 15 allowed.(ã¶ª³ûÿÿÿÿ
+Mpython:S1481ü"4Remove the unused local variable "opp_respawn_zone".(ñ­Îû
+Qpython:S1481û"3Remove the unused local variable "my_respawn_zone".(ÿì­üýÿÿÿÿ
+Kpython:S1481ú"2Remove the unused local variable "objective_zone".(ù÷·ö
+npython:S117;"WRename this parameter "respawnTime" to match the regular expression ^[_a-z][a-z0-9_]*$.(•ÜýÁ
+npython:S117P"WRename this parameter "remCooldown" to match the regular expression ^[_a-z][a-z0-9_]*$.(õ…Œè
+Mpython:S1066Î"/Merge this if statement with the enclosing one.(¬Ðä«ûÿÿÿÿ
+Mpython:S1066à"/Merge this if statement with the enclosing one.(þ€ò•ûÿÿÿÿ
+Mpython:S1066˜"/Merge this if statement with the enclosing one.(½¼Á‹ùÿÿÿÿ
+jpython:S116A"SRename this field "respawnTime" to match the regular expression ^[_a-z][_a-z0-9]*$.(ìÅšš
+,python:S1700É"Rename field "EVENT"(ƒüäM

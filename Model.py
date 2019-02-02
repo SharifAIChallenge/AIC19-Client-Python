@@ -349,11 +349,11 @@ class World:
         return None
 
     def get_my_hero(self, cell=None, row=None, column=None):
-        if cell is not None and row is None and column is None:
+        if cell is not None:
             for hero in self.my_heroes:
                 if hero.current_cell == cell:
                     return hero
-        elif row is not None and column is not None and cell is None:
+        elif row is not None and column is not None:
             if not self.map.is_in_map(row, column):
                 return None
             for hero in self.my_heroes:
@@ -361,19 +361,18 @@ class World:
                     return hero
         return None
 
-    def get_opp_hero(self, cell):
-        for hero in self.opp_heroes:
-            if hero.current_cell == cell:
-                return hero
-        return None
-
-    # TODO fix this
-    def get_opp_hero(self, row, column):
-        if not self.map.is_in_map(row, column):
+    def get_opp_hero(self, cell=None, row=None, column=None):
+        if cell is not None:
+            for hero in self.opp_heroes:
+                if hero.current_cell == cell:
+                    return hero
             return None
-        for hero in self.opp_heroes:
-            if hero.current_cell.row == row and hero.current_cell.column == column:
-                return hero
+        elif row is not None and column is not None:
+            if not self.map.is_in_map(row, column):
+                return None
+            for hero in self.opp_heroes:
+                if hero.current_cell.row == row and hero.current_cell.column == column:
+                    return hero
         return None
 
     def get_impact_cell(self, ability, start_cell, target_cell):
@@ -407,11 +406,17 @@ class World:
         return (self.get_opp_hero(cell) is not None and not ability_constant.type == AbilityType.HEAL) or (
                 self.get_my_hero(cell) is not None and ability_constant.type == AbilityType.HEAL)
 
-    def manhattan_distance(self, start_cell, end_cell):
+    def manhattan_distance(self, start_cell=None, end_cell=None, start_cell_row=None, start_cell_column=None,
+                           end_cell_row=None, end_cell_column=None):
         import math
-        return int(math.fabs(start_cell.row - end_cell.row) + math.fabs(start_cell.column - end_cell.column))
+        if start_cell is not None and end_cell is not None:
+            return int(math.fabs(start_cell.row - end_cell.row) + math.fabs(start_cell.column - end_cell.column))
+        elif start_cell_column is not None and start_cell_row is not None and end_cell_row is not None and \
+                end_cell_column is not None:
+            return int(math.fabs(start_cell_row - end_cell_row) + math.fabs(end_cell_column - start_cell_column))
+        else:
+            return None
 
-    # todo : with row and colm
     def slope_equation(self, x1, y1, x2, y2, x3, y3):
         return y3 * (x1 - x2) - x3 * (y1 - y2) - (x1 * y2 - y1 * x2)
 
@@ -587,7 +592,27 @@ class World:
         if hero_id is not None and ability_name is not None and cell is not None:
             self.queue.put(Event('cast', [hero_id, ability_name.value, cell.row, cell.column]))
             return
-        # TODO complete other situations
+        if hero_id is not None and ability_name is not None and row is not None and column is not None:
+            self.queue.put(Event('cast', [hero_id, ability_name, row, column]))
+            return
+        if hero_id is not None and ability is not None and cell is not None:
+            self.queue.put(Event('cast', [hero_id, ability.ability_constants.name, cell.row, cell.column]))
+            return
+        if hero_id is not None and ability is not None and row is not None and column is not None:
+            self.queue.put(Event('cast', [hero_id, ability.ability_constants.name, row, column]))
+            return
+        if hero is not None and ability_name is not None and cell is not None:
+            self.queue.put(Event('cast', [hero.id, ability_name.value, cell.row, cell.column]))
+            return
+        if hero is not None and ability_name is not None and row is not None and column is not None:
+            self.queue.put(Event('cast', [hero.id, ability_name, row, column]))
+            return
+        if hero is not None and ability is not None and cell is not None:
+            self.queue.put(Event('cast', [hero.id, ability.ability_constants.name, cell.row, cell.column]))
+            return
+        if hero is not None and ability is not None and row is not None and column is not None:
+            self.queue.put(Event('cast', [hero.id, ability.ability_constants.name, row, column]))
+            return
 
     def move_hero(self, hero_id=None, hero=None, directions=None):
         if directions is None:
