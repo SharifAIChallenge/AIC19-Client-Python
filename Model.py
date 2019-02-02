@@ -1,5 +1,6 @@
 import copy
 from enum import Enum
+import json
 
 
 class AbilityName(Enum):
@@ -7,16 +8,23 @@ class AbilityName(Enum):
 
 
 class Direction(Enum):
-    UP, DOWN, RIGHT, LEFT = range(4)
+    UP = "UP"
+    DOWN = "DOWN"
+    RIGHT = "RIGHT"
+    LEFT = "LEFT"
 
 
 class HeroName(Enum):
-    HEALER, FIGHTER, WIMP = range(3)
+    HEALER = "HEALER"
+    FIGHTER = "FIGHTER"
+    WIMP = "WIMP"
     OMID = 3.1415926535897932384636
 
 
 class AbilityType(Enum):
-    HEAL, DODGE, ATTACK = range(3)
+    HEAL = "HEAL"
+    DODGE = "DODGE"
+    ATTACK = "ATTACK"
 
 
 class AbilityConstants:
@@ -33,13 +41,13 @@ class AbilityConstants:
 
 
 class GameConstants:
-    def __init__(self, max_ap, timeout, respawn_time, max_turns, kill_score, objective_zone_score, max_score):
+    def __init__(self, max_ap, timeout, max_turns, kill_score, objective_zone_score, max_score):
         self.max_ap = max_ap
         self.timeout = timeout
-        self.respawn_time = respawn_time
         self.max_turns = max_turns
         self.kill_score = kill_score
         self.objective_zone_score = objective_zone_score
+        self.max_score = max_score
 
 
 class Ability:
@@ -56,13 +64,13 @@ class HeroConstants:
 
 
 class Hero:
-    def __init__(self, hero_id, hero_constant, abilities, respawnTime=None, recent_path=None, cooldowns=None):
+    def __init__(self, hero_id, hero_constant, abilities, respawn_time=None, recent_path=None, cooldowns=None):
         self.id = hero_id
         self.abilities = abilities
         self.constants = hero_constant
         self.current_cell = None
         self.recent_path = recent_path
-        self.respawnTime = respawnTime
+        self.respawnTime = respawn_time
         self.recent_path = recent_path
         self.cooldowns = cooldowns
         self.current_hp = 0
@@ -77,9 +85,9 @@ class Hero:
 
 
 class Cooldown:
-    def __init__(self, name, remCooldown):
+    def __init__(self, name, rem_cooldown):
         self.name = name
-        self.remCooldown
+        self.rem_cooldown = rem_cooldown
 
 
 class Cell:
@@ -141,28 +149,25 @@ class World:
     _DEBUGGING_MODE = False
     _LOG_FILELPOINTER = None
 
-    def __init__(self, map=None, game_constants=None, ability_constants=None, hero_constants=None, my_heroes=None,
-                 opp_heroes=None, dead_heroes=None, ap=None, score=None, world = None):
-        self.map = map
-        self.game_constants = game_constants
-        self.ability_constants = ability_constants
-        self.hero_constants = hero_constants
-        self.my_heroes = my_heroes
-        self.opp_heroes = opp_heroes
-        self.dead_heroes = dead_heroes
-        self.ap = ap
-        self.heroes = None
+    def __init__(self, world=None, queue=None):
+        self.heroes = []
+        self.my_heroes = []
+        self.opp_heroes = []
         self.my_score = 0
         self.opp_score = 0
         self.current_phase = 'pick'
         self.current_turn = 0
+        self.my_casted_ability = []
+        self.opp_casted_ability = []
         if world is not None:
             self.game_constants = world.game_constants
             self.hero_constants = world.hero_constants
             self.ability_constants = world.ability_constants
             self.map = world.map
-        self.my_casted_ability = []
-        self.opp_casted_ability = []
+            self.queue = world.queue
+            self.heroes = world.heroes
+        else:
+            self.queue = queue
 
     def _handle_init_message(self, msg):
         if World._DEBUGGING_MODE:
@@ -171,26 +176,25 @@ class World:
             World._LOG_FILE_POINTER.write(str(msg))
             World._LOG_FILE_POINTER.write('\n')
         msg = msg['args'][0]
-        self.game_constant_init(msg['gameConstant'])
+        self.game_constant_init(msg['gameConstants'])
         self.map_init(msg["map"])
-        self.hero_init(msg["heroes"])
-        self.ability_constants_init(msg["abilities"])
+        self.hero_init(msg["heroConstants"])
+        self.ability_constants_init(msg["abilityConstants"])
 
     def _handle_pick_message(self, msg):
         msg = msg['args'][0]
         my_heroes = msg["myHeroes"]
         opp_heroes = msg["oppHeroes"]
-        self.my_heroes = []
-        self.opp_heroes = []
+        self.current_turn = msg["currentTurn"]
         for hero in my_heroes:
             for first_hero in self.heroes:
-                if hero["name"] == first_hero.constants.name:
+                if hero["type"] == first_hero.constants.name:
                     my_hero = copy.copy(first_hero)
                     my_hero.id = hero["id"]
                     self.my_heroes.append(my_hero)
         for hero in opp_heroes:
             for first_hero in self.heroes:
-                if hero["name"] == first_hero.constants.name:
+                if hero["type"] == first_hero.constants.name:
                     my_hero = copy.copy(first_hero)
                     my_hero.id = hero["id"]
                     self.opp_heroes.append(my_heroes)
@@ -206,8 +210,8 @@ class World:
         opp_heroes = msg["oppHeroes"]
         self._update_heroes(my_heroes)
         self._update_heroes(opp_heroes)
-        self._handle_casted_ability(msg[], "my")
-        self._handle_casted_ability(msg[], "opp")
+        self._handle_casted_ability(msg["myCastAbilities"], "my")
+        self._handle_casted_ability(msg["oppCastedAbilities"], "opp")
 
     def _handle_casted_ability(self, casted_abilities, my_or_opp):
         casted_list = []
@@ -216,22 +220,23 @@ class World:
             for target in casted_ability["targetHeroIds"]:
                 targeted_list.append(target)
             casted_list.append(CastedAbility(casted_ability["casterId"], targeted_list,
-                                             self.map.get_cell(casted_ability["startCell"]["row"],casted_ability["startCell"]["column"] ),
-                                             self.map.get_cell(casted_ability["endCell"]["row"], casted_ability["endCell"]["column"]),
+                                             self.map.get_cell(casted_ability["startCell"]["row"],
+                                                               casted_ability["startCell"]["column"]),
+                                             self.map.get_cell(casted_ability["endCell"]["row"],
+                                                               casted_ability["endCell"]["column"]),
                                              casted_ability["abilityName"]))
         if my_or_opp == "my":
             self.my_casted_ability = casted_list
         elif my_or_opp == "opp":
             self.opp_casted_ability = casted_list
 
-
     def _update_heroes(self, heroes_list):
         for new_hero in heroes_list:
-            id = new_hero["id"]
-            hero = self.get_hero(id)
+            hero_id = new_hero["id"]
+            hero = self.get_hero(hero_id)
             hero.current_hp = new_hero["currentHP"]
             cooldown_list = []
-            cooldowns =new_hero["cooldowns"]
+            cooldowns = new_hero["cooldowns"]
             for cooldown in cooldowns:
                 cd = Cooldown(cooldown["name"], cooldown["remCooldown"])
                 cooldown_list.append(cd)
@@ -254,13 +259,13 @@ class World:
                 temp_cell = cells_map[row][col]
                 cells[row][col] = Cell(temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
                                        temp_cell["isInOppRespawnZone"],
-                                       temp_cell["isInObjectZone"], temp_cell["isInVision"], row, col)
+                                       temp_cell["isInObjectiveZone"], temp_cell["isInVision"], row, col)
 
     def ability_constants_init(self, ability_list):
 
         abilities = []
         for dic in ability_list:
-            ability_constant = AbilityConstants(dic["name"], self.get_type(dic["type"]), dic["range"], dic["APCost"]
+            ability_constant = AbilityConstants(dic["name"], dic["type"], dic["range"], dic["APCost"]
                                                 , dic["cooldown"], dic["power"], dic["areaOfEffect"], dic["isLobbing"]
                                                 , dic["isPiercing"])  # todo : what is real format
             abilities.append(ability_constant)
@@ -292,17 +297,21 @@ class World:
         row_num = map["rowNum"]
         col_num = map["columnNum"]
         cells_map = map["cells"]
-        cells = [[0 for _ in range(row_num)] for _ in range(col_num)]
+        cells = [[0 for _ in range(col_num)] for _ in range(row_num)]
         objective_zone = []
         my_respawn_zone = []
         opp_respawn_zone = []
         for row in range(int(row_num)):
             for col in range(int(col_num)):
                 temp_cell = cells_map[row][col]
-                c = cells[row][col] = Cell(temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
-                                           temp_cell["isInOppRespawnZone"],
-                                           temp_cell["isInObjectZone"], False, row, col)
-                if c.is_objective_zone:
+                c = Cell(is_wall=temp_cell["isWall"], is_in_my_respawn_zone=temp_cell["isInMyRespawnZone"],
+                         is_in_opp_respawn_zone=temp_cell["isInOppRespawnZone"],
+                         is_in_objective_zone=temp_cell["isInObjectiveZone"], is_in_vision=False, row=row, column=col)
+                cells[row][col] = c
+                # c = cells[row][col] = Cell(temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
+                #                            temp_cell["isInOppRespawnZone"],
+                #                            temp_cell["isInObjectiveZone"], False, row, col)
+                if c.is_in_objective_zone:
                     objective_zone.append(c)
                 if c.is_in_my_respawn_zone:
                     my_respawn_zone.append(c)
@@ -311,10 +320,11 @@ class World:
         self.map = Map(row_num, col_num, cells, objective_zone, my_respawn_zone, opp_respawn_zone)
 
     def game_constant_init(self, game_constants):
-        self.game_constants = GameConstants(game_constants["maxAP"], game_constants["timeout"],
-                                            game_constants["respawnTime"], game_constants["maxTurn"],
-                                            game_constants["killScore"]
-                                            , game_constants["objectiveZoneScore"], game_constants["maxScore"])
+        self.game_constants = GameConstants(max_ap=game_constants["maxAP"], timeout=game_constants["timeout"],
+                                            max_turns=game_constants["maxTurns"], kill_score=game_constants["killScore"]
+                                            , objective_zone_score=game_constants["objectiveZoneScore"],
+                                            max_score=game_constants["maxScore"])
+        # TODO add respawnTime for heroes
 
     def get_ability_constants(self, ability_name):
         for a in self.ability_constants:
@@ -326,12 +336,9 @@ class World:
             if hero_name == h.name:
                 return h
 
-    def get_hero(self, id):
-        for hero in self.my_heroes:
-            if hero.id == id:
-                return hero
-        for hero in self.opp_heroes:
-            if hero.id == id:
+    def get_hero(self, hero_id):
+        for hero in self.heroes:
+            if hero.id == hero_id:
                 return hero
         return None
 
@@ -354,6 +361,7 @@ class World:
                 return hero
         return None
 
+    # TODO fix this
     def get_opp_hero(self, row, column):
         if not self.map.is_in_map(row, column):
             return None
@@ -400,13 +408,6 @@ class World:
     # todo : with row and colm
     def slope_equation(self, x1, y1, x2, y2, x3, y3):
         return y3 * (x1 - x2) - x3 * (y1 - y2) - (x1 * y2 - y1 * x2)
-
-    def move_hero(self, hero_id, directions):
-        pass
-
-    def move_hero(self, hero, directions):
-        # self.move_hero(self, hero.id, directions) #todo : different prototype need
-        pass
 
     def calculate_neighbour(self, start, target, current, former):
         if start.row == target.row:
@@ -520,8 +521,9 @@ class World:
                 result += [parent[0]]
                 current = parent[1]
                 parent = parents[current.row][current.column]
-        result += [parent[0]]
-        return list(reversed(result))
+            result += [parent[0]]
+            return list(reversed(result))
+        return []
 
     def bfs(self, parents, visited, queue, target):
         if len(queue) == 0:
@@ -533,7 +535,7 @@ class World:
             neighbour = self.get_next_cell(current, direction)
             if neighbour is not None:
                 if not visited[neighbour.row][neighbour.column]:
-                    queue += [neihgbour]
+                    queue += [neighbour]
                     parents[neighbour.row][neighbour.column] = [direction, current]
                     visited[neighbour.row][neighbour.column] = True
         return self.bfs(parents, visited, queue[1:], target)
@@ -565,7 +567,6 @@ class World:
             hero = self.get_my_hero(cell)
             if hero:
                 heroes.append(hero)
-                heroes.ap
         return heroes
 
     def get_opp_heroes_in_cells(self, cells):
@@ -575,6 +576,22 @@ class World:
             if hero:
                 heroes.append(hero)
         return heroes
+
+    def cast_ability(self, hero_id=None, hero=None, ability_name=None, ability=None, cell=None, row=None, column=None):
+        if hero_id is not None and ability_name is not None and cell is not None:
+            self.queue.put(Event('cast', [hero_id, ability_name.value, cell.row, cell.column]))
+            return
+        # TODO complete other situations
+
+    def move_hero(self, hero_id=None, hero=None, directions=None):
+        if directions is None:
+            return
+        dirs = [direction.value for direction in directions]
+        if hero_id is not None:
+            self.queue.put(Event('move', [hero_id, json.dumps(dirs)]))
+
+    def pick_hero(self, hero_name):
+        self.queue.put(Event('pick', [hero_name.value()]))
 
 
 #     void castAbility(int id, Ability ability, Cell targetCell);
@@ -602,6 +619,7 @@ class ServerConstants:
 
     MESSAGE_TYPE_EVENT = "event"
     MESSAGE_TYPE_INIT = "init"
+    MESSAGE_TYPE_PICK = "pick"
     MESSAGE_TYPE_SHUTDOWN = "shutdown"
     MESSAGE_TYPE_TURN = "turn"
 
