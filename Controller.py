@@ -59,7 +59,6 @@ class Controller:
                 self.conf[self.argNames[i]] = os.environ.get(self.argNames[i])
 
     def handle_message(self, message):
-        print(message[ServerConstants.KEY_NAME])
         if message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_INIT:
             self.world._handle_init_message(message)
             threading.Thread(target=self.client.preprocess(self.world)).start()
