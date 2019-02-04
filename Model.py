@@ -28,7 +28,7 @@ class AbilityType(Enum):
 
 
 class AbilityConstants:
-    def __init__(self, name, type, range, ap_cost, cooldown, power, area_of_effect, is_lobbing, is_piercing):
+    def __init__(self, name, type, range, ap_cost, cooldown, power, area_of_effect, is_lobbing):
         self.name = name
         self.type = type
         self.range = range
@@ -37,7 +37,6 @@ class AbilityConstants:
         self.power = power
         self.area_of_effect = area_of_effect
         self.is_lobbing = is_lobbing
-        self.is_piercing = is_piercing
 
 
 class GameConstants:
@@ -159,6 +158,7 @@ class World:
         self.opp_score = 0
         self.current_phase = 'pick'
         self.current_turn = 0
+        self.move_phase_num = -1
         self.my_casted_ability = []
         self.opp_casted_ability = []
         if world is not None:
@@ -210,6 +210,7 @@ class World:
         self._update_map(msg["map"])
         my_heroes = msg["myHeroes"]
         opp_heroes = msg["oppHeroes"]
+        self.move_phase_num = int(msg["movePhaseNum"])
         self._update_heroes(my_heroes)
         self._update_heroes(opp_heroes)
         self._handle_casted_ability(msg["myCastAbilities"], "my")
@@ -271,9 +272,8 @@ class World:
 
         abilities = []
         for dic in ability_list:
-            ability_constant = AbilityConstants(dic["name"], dic["type"], dic["range"], dic["APCost"]
-                                                , dic["cooldown"], dic["power"], dic["areaOfEffect"], dic["isLobbing"]
-                                                , dic["isPiercing"])  # todo : what is real format
+            ability_constant = AbilityConstants(dic["name"], dic["type"], dic["range"], dic["APCost"],
+                                                dic["cooldown"], dic["power"], dic["areaOfEffect"], dic["isLobbing"])  # todo : what is real format
             abilities.append(ability_constant)
         self.ability_constants = abilities
 
@@ -396,8 +396,7 @@ class World:
             last_cell = cell
             if self.is_affected(ability_constant, cell):
                 impact_cells.append(cell)
-                if not ability_constant.is_piercing:
-                    break
+                break
         if last_cell not in impact_cells:
             impact_cells.append(last_cell)
         return impact_cells
@@ -614,12 +613,18 @@ class World:
             self.queue.put(Event('cast', [hero.id, ability.ability_constants.name, row, column]))
             return
 
-    def move_hero(self, hero_id=None, hero=None, directions=None):
-        if directions is None:
+    def move_hero(self, hero_id=None, hero=None, direction=None):
+        if direction is None:
             return
-        dirs = [direction.value for direction in directions]
+        if hero_id is None and hero is None:
+            return
+        if hero is not None and hero_id is not None:
+            return
+        dirs = [direction.value]
         if hero_id is not None:
             self.queue.put(Event('move', [hero_id, json.dumps(dirs)]))
+        else:
+            self.queue.put(Event('move', [hero, json.dumps(dirs)]))
 
     def pick_hero(self, hero_name):
         self.queue.put(Event('pick', [hero_name.value()]))
