@@ -62,6 +62,7 @@ class Controller:
     def handle_message(self, message):
         if message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_INIT:
             self.world._handle_init_message(message)
+            threading.Thread(target=self.launch_on_thread(self.client.preprocess, self.world)).start()
         elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_PICK:
             new_world = World(world=self.world)
             new_world._handle_pick_message(message)
@@ -77,9 +78,6 @@ class Controller:
             self.terminate()
             
     def launch_on_thread(self, action, new_world):
-        if not self.preprocess_flag:
-            self.client.preprocess(new_world)
-            self.preprocess_flag = True
         action(self.world)
         new_world.queue.put(Event('end', [new_world.current_turn]))
         # self.turn_num += 1
