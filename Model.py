@@ -620,11 +620,11 @@ class World:
             return
         if hero is not None and hero_id is not None:
             return
-        dirs = [direction.value]
+        dir_val = direction.value
         if hero_id is not None:
-            self.queue.put(Event('move', [hero_id, json.dumps(dirs)]))
+            self.queue.put(Event('move', [hero_id, dir_val]))
         else:
-            self.queue.put(Event('move', [hero, json.dumps(dirs)]))
+            self.queue.put(Event('move', [hero, dir_val]))
 
     def pick_hero(self, hero_name):
         self.queue.put(Event('pick', [hero_name.value()]))
