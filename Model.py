@@ -3,27 +3,44 @@ from enum import Enum
 
 
 class AbilityName(Enum):
-    pass
+    SENTRY_ATTACK = "SENTRY_ATTACK"
+    SENTRY_DODGE = "SENTRY_DODGE"
+    SENTRY_RAY = "SENTRY_RAY"
+    BLASTER_ATTACK = "BLASTER_ATTACK"
+    BLASTER_DODGE = "BLASTER_DODGE"
+    BLASTER_BOMB = "BLASTER_BOMB"
+    HEALER_ATTACK = "HEALER_ATTACK"
+    HEALER_DODGE = "HEALER_DODGE"
+    HEALER_HEAL = "HEALER_HEAL"
+    GUARDIAN_ATTACK = "GUARDIAN_ATTACK"
+    GUARDIAN_DODGE = "GUARDIAN_DODGE"
+    GUARDIAN_FORTIFY = "GUARDIAN_FORTIFY"
 
 
 class Direction(Enum):
     UP = "UP"
     DOWN = "DOWN"
-    RIGHT = "RIGHT"
     LEFT = "LEFT"
+    RIGHT = "RIGHT"
 
 
 class HeroName(Enum):
+    SENTRY = "SENTRY"
+    BLASTER = "BLASTER"
     HEALER = "HEALER"
-    FIGHTER = "FIGHTER"
-    WIMP = "WIMP"
-    OMID = 3.1415926535897932384636
+    GUARDIAN = "GUARDIAN"
 
 
 class AbilityType(Enum):
-    HEAL = "HEAL"
+    DEFENSIVE = "DEFENSIVE"
     DODGE = "DODGE"
-    ATTACK = "ATTACK"
+    OFFENSIVE = "OFFENSIVE"
+
+
+class Phase(Enum):
+    PICK = "PICK"
+    MOVE = "MOVE"
+    ACTION = "ACTION"
 
 
 class AbilityConstants:
@@ -150,7 +167,7 @@ class World:
         self.opp_heroes = []
         self.my_score = 0
         self.opp_score = 0
-        self.current_phase = 'pick'
+        self.current_phase = Phase.PICK
         self.current_turn = 0
         self.move_phase_num = -1
         self.my_casted_ability = []
