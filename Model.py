@@ -1,6 +1,5 @@
 import copy
 from enum import Enum
-import json
 
 
 class AbilityName(Enum):
@@ -50,8 +49,9 @@ class GameConstants:
 
 
 class Ability:
-    def __init__(self, ability_constants):
+    def __init__(self, ability_constants, rem_cooldown):
         self.ability_constants = ability_constants
+        self.rem_cooldown = rem_cooldown
 
 
 class HeroConstants:
@@ -81,12 +81,6 @@ class Hero:
 
     def __hash__(self):
         return self.id
-
-
-class Cooldown:
-    def __init__(self, name, rem_cooldown):
-        self.name = name
-        self.rem_cooldown = rem_cooldown
 
 
 class Cell:
@@ -210,7 +204,7 @@ class World:
         self._update_map(msg["map"])
         my_heroes = msg["myHeroes"]
         opp_heroes = msg["oppHeroes"]
-        self.move_phase_num = int(msg["movePhaseNum"])
+        self.move_phase_num = msg["movePhaseNum"]
         self._update_heroes(my_heroes)
         self._update_heroes(opp_heroes)
         self._handle_casted_ability(msg["myCastAbilities"], "my")
@@ -233,18 +227,21 @@ class World:
         elif my_or_opp == "opp":
             self.opp_casted_ability = casted_list
 
+    def get_ability_constants(self, name):
+        for constant in self.ability_constants:
+            if constant.name == name:
+                return constant
+
     def _update_heroes(self, heroes_list):
         for new_hero in heroes_list:
             hero_name = new_hero["type"]
             hero = copy.copy(self.get_hero(hero_name))
             hero.id = new_hero["id"]
             hero.current_hp = new_hero["currentHP"]
-            cooldown_list = []
-            cooldowns = new_hero["cooldowns"]
-            for cooldown in cooldowns:
-                cd = Cooldown(cooldown["name"], cooldown["remCooldown"])
-                cooldown_list.append(cd)  # FIXME GOD DAMN IT WHAT THE FUCK IS THIS?!
-            hero.cooldowns = cooldown_list
+            cooldowns = new_hero.get("cooldowns")
+            if cooldowns is not None:
+                for cooldown in cooldowns:
+                    hero.abilities += [Ability(self.get_ability_constants(cooldown["name"]), cooldown["remCooldown"])]
             if "currentCell" not in new_hero:
                 hero.current_cell = Cell(is_wall=False, is_in_my_respawn_zone=False, is_in_opp_respawn_zone=False,
                                          is_in_objective_zone=False, is_in_vision=False, row=-1, column=-1)
@@ -258,9 +255,6 @@ class World:
 
     def _update_map(self, cells_map):
         cells = [[0 for _ in range(self.map.row_num)] for _ in range(self.map.column_num)]
-        objective_zone = []
-        my_respawn_zone = []
-        opp_respawn_zone = []
         for row in range(int(self.map.row_num)):
             for col in range(int(self.map.column_num)):
                 temp_cell = cells_map[row][col]
@@ -294,7 +288,7 @@ class World:
             for name in h["abilityNames"]:
                 names.append(name)
             constant = HeroConstants(h["name"], names, h["maxHP"], h["moveAPCost"])
-            heroes.append(Hero(0, constant, None))
+            heroes.append(Hero(0, constant, []))
             constants.append(constant)
         self.heroes = heroes
         self.hero_constants = constants
@@ -310,9 +304,10 @@ class World:
         for row in range(int(row_num)):
             for col in range(int(col_num)):
                 temp_cell = cells_map[row][col]
-                c = Cell(is_wall=temp_cell["isWall"], is_in_my_respawn_zone=temp_cell["isInMyRespawnZone"],
-                         is_in_opp_respawn_zone=temp_cell["isInOppRespawnZone"],
-                         is_in_objective_zone=temp_cell["isInObjectiveZone"], is_in_vision=False, row=row, column=col)
+                c = Cell(is_wall=temp_cell["isWall"], is_in_my_respawn_zone=temp_cell["isInMyRespawnZone"]
+                         , is_in_opp_respawn_zone=temp_cell["isInOppRespawnZone"],
+                         is_in_objective_zone=temp_cell["isInObjectiveZone"], is_in_vision=False, row=row,
+                         column=col)
                 cells[row][col] = c
                 # c = cells[row][col] = Cell(temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
                 #                            temp_cell["isInOppRespawnZone"],
@@ -327,15 +322,11 @@ class World:
 
     def game_constant_init(self, game_constants):
         self.game_constants = GameConstants(max_ap=game_constants["maxAP"], timeout=game_constants["timeout"],
-                                            max_turns=game_constants["maxTurns"], kill_score=game_constants["killScore"]
-                                            , objective_zone_score=game_constants["objectiveZoneScore"],
+                                            max_turns=game_constants["maxTurns"],
+                                            kill_score=game_constants["killScore"],
+                                            objective_zone_score=game_constants["objectiveZoneScore"],
                                             max_score=game_constants["maxScore"])
         # TODO add respawnTime for heroes
-
-    def get_ability_constants(self, ability_name):
-        for a in self.ability_constants:
-            if a.name == ability_name:
-                return a
 
     def get_hero_constants(self, hero_name):
         for h in self.hero_constants:
@@ -405,7 +396,8 @@ class World:
         return (self.get_opp_hero(cell) is not None and not ability_constant.type == AbilityType.HEAL) or (
                 self.get_my_hero(cell) is not None and ability_constant.type == AbilityType.HEAL)
 
-    def manhattan_distance(self, start_cell=None, end_cell=None, start_cell_row=None, start_cell_column=None,
+    @staticmethod
+    def manhattan_distance(start_cell=None, end_cell=None, start_cell_row=None, start_cell_column=None,
                            end_cell_row=None, end_cell_column=None):
         import math
         if start_cell is not None and end_cell is not None:
@@ -416,7 +408,8 @@ class World:
         else:
             return None
 
-    def slope_equation(self, x1, y1, x2, y2, x3, y3):
+    @staticmethod
+    def slope_equation(x1, y1, x2, y2, x3, y3):
         return y3 * (x1 - x2) - x3 * (y1 - y2) - (x1 * y2 - y1 * x2)
 
     def calculate_neighbour(self, start, target, current, former):
@@ -487,8 +480,8 @@ class World:
             if neighbour.is_wall:
                 break
             if neighbour.row != current.row and neighbour.column != current.column:
-                if self.map.get_cell(current.row, neighbour.column).is_wall or self.map.get_cell(neighbour.row,
-                                                                                                 current.column).is_wall:
+                if self.map.get_cell(current.row, neighbour.column).is_wall \
+                        or self.map.get_cell(neighbour.row, current.column).is_wall:
                     break
             res += [neighbour]
             former = current
@@ -561,7 +554,6 @@ class World:
         return cells
 
     def get_ability_targets(self, ability_name, start_cell, end_cell):
-        cells = []
         ability_constant = self.get_ability_constants(ability_name)
         cells = self.get_impact_cells(ability_name, start_cell, end_cell)
         affected_cells = set()
@@ -574,7 +566,7 @@ class World:
     def get_my_heroes_in_cells(self, cells):
         heroes = []
         for cell in cells:
-            hero = self.get_my_hero(cell = cell)
+            hero = self.get_my_hero(cell=cell)
             if hero:
                 heroes.append(hero)
         return heroes
