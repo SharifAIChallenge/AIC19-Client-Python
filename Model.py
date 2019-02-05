@@ -50,9 +50,12 @@ class AbilityConstants:
 
 
 class GameConstants:
-    def __init__(self, max_ap, timeout, max_turns, kill_score, objective_zone_score, max_score):
+    def __init__(self, max_ap, preprocess_timeout, first_move_timeout, normal_timeout,
+                 max_turns, kill_score, objective_zone_score, max_score):
         self.max_ap = max_ap
-        self.timeout = timeout
+        self.preprocess_timeout = preprocess_timeout
+        self.first_move_timeout = first_move_timeout
+        self.normal_timeout = normal_timeout
         self.max_turns = max_turns
         self.kill_score = kill_score
         self.objective_zone_score = objective_zone_score
@@ -189,6 +192,7 @@ class World:
         self.my_heroes = []
         self.opp_heroes = []
         self.my_score = 0
+        self.ap = 0
         self.opp_score = 0
         self.current_phase = Phase.PICK
         self.current_turn = 0
@@ -209,6 +213,20 @@ class World:
             self.heroes = world.heroes
         else:
             self.queue = queue
+
+    def get_my_dead_heroes(self):
+        dead_heroes = []
+        for hero in self.my_heroes:
+            if hero.current_hp <= 0:
+                dead_heroes += [hero]
+        return dead_heroes
+
+    def get_opp_dead_heroes(self):
+        dead_memes = []
+        for hero in self.opp_heroes:
+            if hero.current_hp <= 0:
+                dead_memes += [hero]
+        return dead_memes
 
     def _handle_init_message(self, msg):
         if World._DEBUGGING_MODE:
@@ -245,6 +263,7 @@ class World:
         self.my_score = msg["myScore"]
         self.opp_score = msg["oppScore"]
         self.current_phase = self._get_phase(msg["currentPhase"])
+        self.ap = msg["AP"]
         self.current_turn = msg["currentTurn"]
         self._update_map(msg["map"])
         my_heroes = msg["myHeroes"]
@@ -366,13 +385,15 @@ class World:
         self.map = Map(cells, row_num, col_num, my_respawn_zone, opp_respawn_zone, objective_zone)
 
     def game_constant_init(self, game_constants_msg):
-        self.game_constants = GameConstants(max_ap=game_constants_msg["maxAP"], timeout=game_constants_msg["timeout"],
+        self.game_constants = GameConstants(max_ap=game_constants_msg["maxAP"],
+                                            preprocess_timeout=game_constants_msg["preprocessTimeout"],
+                                            first_move_timeout=game_constants_msg["firstMoveTimeout"],
+                                            normal_timeout=game_constants_msg["normalTimeout"],
                                             max_turns=game_constants_msg["maxTurns"],
                                             kill_score=game_constants_msg["killScore"],
                                             objective_zone_score=game_constants_msg["objectiveZoneScore"],
                                             max_score=game_constants_msg["maxScore"])
         self.max_ap = self.game_constants.max_ap
-        self.timeout = self.game_constants.timeout
         self.max_turns = self.game_constants.max_turns
         self.kill_score = self.game_constants.kill_score
         self.objective_zone_score = self.game_constants.objective_zone_score
@@ -412,17 +433,15 @@ class World:
     def get_opp_hero(self, cell=None, row=None, column=None):
         return self.get_hero_by_cell(self.opp_heroes, cell, row, column)
 
-    def get_impact_cell(self, ability, start_cell, target_cell):
-        if ability.is_lobbing:
-            return target_cell
-        return self.get_ray_cells(start_cell, target_cell)[-1]  # return the last cell of ray cells
-
-    def get_impact_cells(self, ability=None, ability_name=None, start_cell=None, start_row=None, start_column=None,
-                         target_cell=None, target_row=None, target_column=None):
-        if ability_name is None:
+    def get_impact_cell(self, ability=None, ability_name=None, ability_constant=None, start_cell=None, start_row=None,
+                        start_column=None, target_cell=None, target_row=None, target_column=None):
+        if ability_constant is None:
             if ability is None:
-                return None
-            ability_name = ability.ability_constants.name
+                if ability_name is None:
+                    return None
+                ability_constant = self.get_ability_constants(ability_name)
+            else:
+                ability_constant = ability.ability_constants
         if start_cell is None:
             if start_row is None or start_column is None:
                 return None
@@ -433,7 +452,9 @@ class World:
                 return None
             target_cell = self.map.get_cell(target_row, target_column)
 
-        ability_constant = self.get_ability_constants(ability_name)
+        return self.get_impact_cells(ability_constant, start_cell, target_cell)[-1]
+
+    def get_impact_cells(self, ability_constant, start_cell, target_cell):
         if ability_constant.is_lobbing:
             return [target_cell]
         if start_cell.is_wall or start_cell == target_cell:
@@ -634,9 +655,26 @@ class World:
                     cells.append(self.map.get_cell(row, col))
         return cells
 
-    def get_ability_targets(self, ability_name, start_cell, end_cell):
-        ability_constant = self.get_ability_constants(ability_name)
-        cells = self.get_impact_cells(ability_name, start_cell, end_cell)
+    def get_ability_targets(self, ability_name=None, ability=None, ability_constant=None, start_cell=None,
+                            start_row=None, start_column=None, target_cell=None, target_row=None, target_column=None):
+        if ability_constant is None:
+            if ability is None:
+                if ability_name is None:
+                    return None
+                ability_constant = self.get_ability_constants(ability_name)
+            else:
+                ability_constant = ability.ability_constants
+        if start_cell is None:
+            if start_row is None or start_column is None:
+                return None
+            start_cell = self.map.get_cell(start_row, start_column)
+
+        if target_cell is None:
+            if target_row is None or target_column is None:
+                return None
+            target_cell = self.map.get_cell(target_row, target_column)
+
+        cells = self.get_impact_cells(ability_name, start_cell, target_cell)
         affected_cells = set()
         for cell in cells:
             affected_cells.update(self.get_cells_in_aoe(cell, ability_constant.area_of_effect))
