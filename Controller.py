@@ -82,18 +82,6 @@ class Controller:
         new_world.queue.put(Event('end', [new_world.current_turn]))
         # self.turn_num += 1
 
-            
-    # def do_turn(self):
-    #     if self.turn_num == 0:
-    #         t = threading.Thread(target=self.launch_on_thread(self.client.preprocess))
-    #     if self.turn_num < 4:
-    #         t = threading.Thread(target=self.launch_on_thread(self.client.pick))
-    #     elif self.turn_num % 2 == 0:
-    #         t = threading.Thread(target=self.launch_on_thread(self.client.move))
-    #     else:
-    #         t = threading.Thread(target=self.launch_on_thread(self.client.action))
-    #     t.start()
-
 
 c = Controller()
 if len(sys.argv) > 1 and sys.argv[1] == '--verbose':

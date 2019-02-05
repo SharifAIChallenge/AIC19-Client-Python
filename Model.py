@@ -269,8 +269,8 @@ class World:
         my_heroes = msg["myHeroes"]
         opp_heroes = msg["oppHeroes"]
         self.move_phase_num = msg["movePhaseNum"]
-        self._update_heroes(my_heroes)
-        self._update_heroes(opp_heroes)
+        self._update_heroes(my_heroes, self.my_heroes)
+        self._update_heroes(opp_heroes, self.opp_heroes)
         self._handle_cast_ability(msg["myCastAbilities"], "my")
         self._handle_cast_ability(msg["oppCastAbilities"], "opp")
 
@@ -296,18 +296,19 @@ class World:
             if constant.name == name:
                 return constant
 
-    def _update_heroes(self, heroes_list):
+    def _update_heroes(self, heroes_list, main_hero_list):
         for new_hero in heroes_list:
             hero_name = new_hero["type"]
             hero = copy.copy(self._get_hero(hero_name))
             hero.id = new_hero["id"]
             hero.current_hp = new_hero["currentHP"]
             cooldowns = new_hero.get("cooldowns")
+            hero.abilities = []
             if cooldowns is not None:
-                hero.abilities = []
-                for cooldown in cooldowns:
-                    hero.abilities += [Ability(self.get_ability_constants(cooldown["name"]), cooldown["remCooldown"])]
-            #todo is None
+                hero.abilities += [Ability(self.get_ability_constants(cooldown["name"]), cooldown["remCooldown"])
+                                   for cooldown in cooldowns]
+            else:
+                hero.abilities += [Ability(ability_name, -1) for ability_name in hero.ability_names]
             if "currentCell" not in new_hero:
                 hero.current_cell = Cell(row=-1, column=-1, is_wall=False, is_in_my_respawn_zone=False,
                                          is_in_opp_respawn_zone=False, is_in_objective_zone=False, is_in_vision=False)
@@ -318,15 +319,17 @@ class World:
                 recent_path.append(self.map.get_cell(recent["row"], recent["column"]))
             hero.recent_path = recent_path
             hero.respawn_time = new_hero["respawnTime"]
+            main_hero_list.append(hero)
 
-    def _update_map(self, cells_map):
-        cells = [[0 for _ in range(self.map.row_num)] for _ in range(self.map.column_num)]
+    def _update_map(self, cells_map): # TODO check this pooya
+        cells = [[0 for _ in range(self.map.column_num)] for _ in range(self.map.row_num)]
         for row in range(int(self.map.row_num)):
             for col in range(int(self.map.column_num)):
                 temp_cell = cells_map[row][col]
-                cells[row][col] = Cell(row, col, temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
-                                       temp_cell["isInOppRespawnZone"], temp_cell["isInObjectiveZone"],
-                                       temp_cell["isInVision"])
+                # cells[row][col] = Cell(row, col, temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
+                #                        temp_cell["isInOppRespawnZone"], temp_cell["isInObjectiveZone"],
+                #                        temp_cell["isInVision"])
+                self.map.cells[row][col].is_in_vision = temp_cell["isInVision"]
 
     def ability_constants_init(self, ability_list):
 
