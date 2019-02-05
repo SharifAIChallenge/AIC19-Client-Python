@@ -304,8 +304,10 @@ class World:
             hero.current_hp = new_hero["currentHP"]
             cooldowns = new_hero.get("cooldowns")
             if cooldowns is not None:
+                hero.abilities = []
                 for cooldown in cooldowns:
                     hero.abilities += [Ability(self.get_ability_constants(cooldown["name"]), cooldown["remCooldown"])]
+            #todo is None
             if "currentCell" not in new_hero:
                 hero.current_cell = Cell(row=-1, column=-1, is_wall=False, is_in_my_respawn_zone=False,
                                          is_in_opp_respawn_zone=False, is_in_objective_zone=False, is_in_vision=False)

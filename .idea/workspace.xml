@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a059118d-1b22-4a88-885e-e59f6c938987" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/ai-python-client.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ai-python-client.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Model.py" beforeDir="false" afterPath="$PROJECT_DIR$/Model.py" afterDir="false" />
     </list>
@@ -20,41 +19,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="165">
-              <caret line="561" column="12" selection-start-line="561" selection-start-column="12" selection-end-line="561" selection-end-column="12" />
+            <state relative-caret-position="758">
+              <caret line="438" column="43" selection-start-line="438" selection-start-column="43" selection-end-line="438" selection-end-column="43" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
-                <element signature="e#5199#5910#0" />
-                <element signature="e#5961#6548#0" />
-                <element signature="e#7604#7713#0" />
-                <element signature="e#7766#8902#0" />
-                <element signature="e#8950#9455#0" />
-                <element signature="e#9518#9906#0" />
-                <element signature="e#9961#10114#0" />
-                <element signature="e#10162#10585#0" />
-                <element signature="e#10624#12013#0" />
-                <element signature="e#13675#14441#0" />
-                <element signature="e#12758#12879#0" />
-                <element signature="e#14370#14580#0" />
-                <element signature="e#14668#15119#0" />
-                <element signature="e#16186#16339#0" />
-                <element signature="e#16403#17674#0" />
-                <element signature="e#15062#15259#0" />
-                <element signature="e#15460#15951#0" />
-                <element signature="e#16027#16087#0" />
-                <element signature="e#16164#18918#0" />
-                <element signature="e#18979#19801#0" />
-                <element signature="e#20077#20229#0" />
-                <element signature="e#20285#20911#0" />
-                <element signature="e#22495#23241#0" />
-                <element signature="e#21790#22371#0" />
-                <element signature="e#22435#22885#0" />
-                <element signature="e#22966#23412#0" />
-                <element signature="e#23467#23631#0" />
-                <element signature="e#23687#23847#0" />
-                <element signature="e#25375#27000#0" />
-                <element signature="e#25672#26049#0" />
-                <element signature="e#26095#26145#0" />
               </folding>
             </state>
           </provider>
@@ -63,7 +31,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Network.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="313">
+            <state relative-caret-position="450">
               <caret line="30" column="114" selection-start-line="30" selection-start-column="114" selection-end-line="30" selection-end-column="114" />
             </state>
           </provider>
@@ -72,7 +40,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Controller.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="247">
+            <state relative-caret-position="1020">
               <caret line="70" column="25" lean-forward="true" selection-start-line="70" selection-start-column="25" selection-end-line="70" selection-end-column="25" />
             </state>
           </provider>
@@ -98,14 +66,7 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>get_IMpa</find>
-      <find>msg</find>
-      <find>cooldown</find>
-      <find>col</find>
-      <find>is_piercing</find>
-      <find>todo</find>
       <find>movePhase</find>
-      <find>Hero</find>
       <find>copy.copy</find>
       <find>Ability</find>
       <find>rem_cooldown</find>
@@ -128,6 +89,13 @@
       <find>casted</find>
       <find>GameConstants</find>
       <find>vision</find>
+      <find>ap</find>
+      <find>turn</find>
+      <find>handle_tu</find>
+      <find>class Hero</find>
+      <find>impact_ce</find>
+      <find>ability_constant</find>
+      <find>Hero</find>
     </findStrings>
     <replaceStrings>
       <replace>dead_heroes</replace>
@@ -151,10 +119,10 @@
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="296" />
-    <option name="y" value="53" />
-    <option name="width" value="1400" />
-    <option name="height" value="1000" />
+    <option name="x" value="64" />
+    <option name="y" value="-11" />
+    <option name="width" value="1303" />
+    <option name="height" value="780" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -237,7 +205,8 @@
       <option name="presentableId" value="Default" />
       <updated>1548017209023</updated>
       <workItem from="1549313818320" duration="6180000" />
-      <workItem from="1549322747375" duration="5216000" />
+      <workItem from="1549322747375" duration="5389000" />
+      <workItem from="1549344457455" duration="4307000" />
     </task>
     <task id="LOCAL-00001" summary="delete piercing&#10;add move_phase_num">
       <created>1549314560657</created>
@@ -274,11 +243,32 @@
       <option name="project" value="LOCAL" />
       <updated>1549323834889</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="everything done except for these:&#10;‫‪AbilityTargets‬‬&#10;g‫‪etImpactCell‬‬&#10;‪getMyDeadHeroes&#10;‫‪getOppDeadHeroes‬‬&#10;‫‪getAP‬‬">
+      <created>1549328051099</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1549328051099</updated>
+    </task>
+    <task id="LOCAL-00007" summary="everything done except for these:&#10;‫‪AbilityTargets‬‬&#10;g‫‪etImpactCell‬‬&#10;‪getMyDeadHeroes&#10;‫‪getOppDeadHeroes‬‬&#10;‫‪getAP‬‬">
+      <created>1549328094905</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1549328094905</updated>
+    </task>
+    <task id="LOCAL-00008" summary="everything done except for these:&#10;‫‪AbilityTargets‬‬&#10;g‫‪etImpactCell‬‬&#10;‪getMyDeadHeroes&#10;‫‪getOppDeadHeroes‬‬&#10;‫‪getAP‬‬">
+      <created>1549351537030</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1549351537030</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="11396000" />
+    <option name="totallyTimeSpent" value="15876000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -293,7 +283,7 @@
     <frame x="64" y="-11" width="1303" height="780" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.19760956" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.20079681" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -327,7 +317,8 @@
     <MESSAGE value="cooldown fix" />
     <MESSAGE value="ENUMS" />
     <MESSAGE value="Nyet-work" />
-    <option name="LAST_COMMIT_MESSAGE" value="Nyet-work" />
+    <MESSAGE value="everything done except for these:&#10;‫‪AbilityTargets‬‬&#10;g‫‪etImpactCell‬‬&#10;‪getMyDeadHeroes&#10;‫‪getOppDeadHeroes‬‬&#10;‫‪getAP‬‬" />
+    <option name="LAST_COMMIT_MESSAGE" value="everything done except for these:&#10;‫‪AbilityTargets‬‬&#10;g‫‪etImpactCell‬‬&#10;‪getMyDeadHeroes&#10;‫‪getOppDeadHeroes‬‬&#10;‫‪getAP‬‬" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/map.map">
@@ -347,65 +338,34 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/AI.py">
+    <entry file="file://$PROJECT_DIR$/Model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="13" selection-start-line="1" selection-start-column="13" selection-end-line="1" selection-end-column="13" />
+        <state relative-caret-position="758">
+          <caret line="438" column="43" selection-start-line="438" selection-start-column="43" selection-end-line="438" selection-end-column="43" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Network.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="313">
+        <state relative-caret-position="450">
           <caret line="30" column="114" selection-start-line="30" selection-start-column="114" selection-end-line="30" selection-end-column="114" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Controller.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="247">
+        <state relative-caret-position="1020">
           <caret line="70" column="25" lean-forward="true" selection-start-line="70" selection-start-column="25" selection-end-line="70" selection-end-column="25" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Model.py">
+    <entry file="file://$PROJECT_DIR$/AI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
-          <caret line="561" column="12" selection-start-line="561" selection-start-column="12" selection-end-line="561" selection-end-column="12" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-            <element signature="e#5199#5910#0" />
-            <element signature="e#5961#6548#0" />
-            <element signature="e#7604#7713#0" />
-            <element signature="e#7766#8902#0" />
-            <element signature="e#8950#9455#0" />
-            <element signature="e#9518#9906#0" />
-            <element signature="e#9961#10114#0" />
-            <element signature="e#10162#10585#0" />
-            <element signature="e#10624#12013#0" />
-            <element signature="e#13675#14441#0" />
-            <element signature="e#12758#12879#0" />
-            <element signature="e#14370#14580#0" />
-            <element signature="e#14668#15119#0" />
-            <element signature="e#16186#16339#0" />
-            <element signature="e#16403#17674#0" />
-            <element signature="e#15062#15259#0" />
-            <element signature="e#15460#15951#0" />
-            <element signature="e#16027#16087#0" />
-            <element signature="e#16164#18918#0" />
-            <element signature="e#18979#19801#0" />
-            <element signature="e#20077#20229#0" />
-            <element signature="e#20285#20911#0" />
-            <element signature="e#22495#23241#0" />
-            <element signature="e#21790#22371#0" />
-            <element signature="e#22435#22885#0" />
-            <element signature="e#22966#23412#0" />
-            <element signature="e#23467#23631#0" />
-            <element signature="e#23687#23847#0" />
-            <element signature="e#25375#27000#0" />
-            <element signature="e#25672#26049#0" />
-            <element signature="e#26095#26145#0" />
-          </folding>
+        <state relative-caret-position="15">
+          <caret line="1" column="13" selection-start-line="1" selection-start-column="13" selection-end-line="1" selection-end-column="13" />
         </state>
       </provider>
     </entry>
