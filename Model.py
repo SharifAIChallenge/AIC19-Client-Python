@@ -37,14 +37,8 @@ class AbilityType(Enum):
     OFFENSIVE = "OFFENSIVE"
 
 
-class Phase(Enum):
-    PICK = "PICK"
-    MOVE = "MOVE"
-    ACTION = "ACTION"
-
-
 class AbilityConstants:
-    def __init__(self, name, type, range, ap_cost, cooldown, power, area_of_effect, is_lobbing):
+    def __init__(self, name, type, range, ap_cost, cooldown, area_of_effect, power, is_lobbing):
         self.name = name
         self.type = type
         self.range = range
@@ -70,26 +64,55 @@ class Ability:
         self.ability_constants = ability_constants
         self.rem_cooldown = rem_cooldown
 
+    def is_ready(self):
+        return self.rem_cooldown <= 0
+
 
 class HeroConstants:
-    def __init__(self, hero_name, ability_names, max_hp, move_ap_cost):
-        self.name = hero_name
+    def __init__(self, hero_name, ability_names, max_hp, move_ap_cost, respawn_time):
+        self.hero_name = hero_name
         self.ability_names = ability_names
         self.max_hp = max_hp
         self.move_ap_cost = move_ap_cost
+        self.respawn_time = respawn_time
 
 
 class Hero:
-    def __init__(self, hero_id, hero_constant, abilities, respawn_time=None, recent_path=None, cooldowns=None):
+    def __init__(self, hero_id, hero_constant, abilities, recent_path=None):
         self.id = hero_id
         self.abilities = abilities
-        self.constants = hero_constant
+        self.name = hero_constant.hero_name
+        self.ability_names = hero_constant.ability_names
+        self.max_hp = hero_constant.max_hp
+        self.move_ap_cost = hero_constant.move_ap_cost
+        self.respawn_time = hero_constant.respawn_time
         self.current_cell = None
         self.recent_path = recent_path
-        self.respawnTime = respawn_time
         self.recent_path = recent_path
-        self.cooldowns = cooldowns
         self.current_hp = 0
+        self.defensive_abilities = []
+        self.offensive_abilities = []
+        self.dodge_abilities = []
+        for ability in self.abilities:
+            if ability.ability_constants.type == AbilityType.DEFENSIVE:
+                self.defensive_abilities += [ability]
+            if ability.ability_constants.type == AbilityType.OFFENSIVE:
+                self.offensive_abilities += [ability]
+            if ability.ability_constants.type == AbilityType.DODGE:
+                self.dodge_abilities += [ability]
+
+    def set_constants(self, hero_constant):
+        self.name = hero_constant.hero_name
+        self.ability_names = hero_constant.ability_names
+        self.max_hp = hero_constant.max_hp
+        self.move_ap_cost = hero_constant.move_ap_cost
+        self.respawn_time = hero_constant.respawn_time
+
+    def get_ability(self, ability_name):
+        for ability in self.abilities:
+            if ability.ability_constants.name == ability_name:
+                return ability
+        return None
 
     def __eq__(self, other):
         if type(self) is type(other):
@@ -101,8 +124,8 @@ class Hero:
 
 
 class Cell:
-    def __init__(self, is_wall, is_in_my_respawn_zone, is_in_opp_respawn_zone, is_in_objective_zone,
-                 is_in_vision, row, column):
+    def __init__(self, row, column, is_wall, is_in_my_respawn_zone, is_in_opp_respawn_zone, is_in_objective_zone,
+                 is_in_vision):
         self.is_wall = is_wall
         self.is_in_my_respawn_zone = is_in_my_respawn_zone
         self.is_in_opp_respawn_zone = is_in_opp_respawn_zone
@@ -122,7 +145,7 @@ class Cell:
 
 
 class Map:
-    def __init__(self, row_num, column_num, cells, objective_zone, my_respawn_zone, opp_respawn_zone):
+    def __init__(self, cells, row_num, column_num, my_respawn_zone, opp_respawn_zone, objective_zone):
         self.row_num = row_num
         self.column_num = column_num
         self.cells = cells
@@ -136,7 +159,7 @@ class Map:
         return False
 
     def get_cell(self, row, column):
-        if 0 <= row < self.row_num and 0 <= column < self.column_num:
+        if self.is_in_map(row, column):
             return self.cells[row][column]
         else:
             return None
@@ -148,7 +171,7 @@ class Phase(Enum):
     ACTION = "ACTION"
 
 
-class CastedAbility:
+class CastAbility:
     def __init__(self, caster_id, targeted_ids, start_cell, end_cell, ability_name):
         self.caster_id = caster_id
         self.targeted_ids = targeted_ids
@@ -159,7 +182,7 @@ class CastedAbility:
 
 class World:
     _DEBUGGING_MODE = False
-    _LOG_FILELPOINTER = None
+    _LOG_FILE_POINTER = None
 
     def __init__(self, world=None, queue=None):
         self.heroes = []
@@ -170,10 +193,15 @@ class World:
         self.current_phase = Phase.PICK
         self.current_turn = 0
         self.move_phase_num = -1
-        self.my_casted_ability = []
-        self.opp_casted_ability = []
+        self.my_cast_abilities = []
+        self.opp_cast_abilities = []
         if world is not None:
             self.game_constants = world.game_constants
+            self.max_ap = self.game_constants.max_ap
+            self.max_turns = self.game_constants.max_turns
+            self.kill_score = self.game_constants.kill_score
+            self.objective_zone_score = self.game_constants.objective_zone_score
+            self.max_score = self.game_constants.max_score
             self.hero_constants = world.hero_constants
             self.ability_constants = world.ability_constants
             self.map = world.map
@@ -201,13 +229,13 @@ class World:
         self.current_turn = msg["currentTurn"]
         for hero in my_heroes:
             for first_hero in self.heroes:
-                if hero["type"] == first_hero.constants.name:
+                if hero["type"] == first_hero.name:
                     my_hero = copy.copy(first_hero)
                     my_hero.id = hero["id"]
                     self.my_heroes.append(my_hero)
         for hero in opp_heroes:
             for first_hero in self.heroes:
-                if hero["type"] == first_hero.constants.name:
+                if hero["type"] == first_hero.name:
                     my_hero = copy.copy(first_hero)
                     my_hero.id = hero["id"]
                     self.opp_heroes.append(my_heroes)
@@ -224,25 +252,25 @@ class World:
         self.move_phase_num = msg["movePhaseNum"]
         self._update_heroes(my_heroes)
         self._update_heroes(opp_heroes)
-        self._handle_casted_ability(msg["myCastAbilities"], "my")
-        self._handle_casted_ability(msg["oppCastAbilities"], "opp")
+        self._handle_cast_ability(msg["myCastAbilities"], "my")
+        self._handle_cast_ability(msg["oppCastAbilities"], "opp")
 
-    def _handle_casted_ability(self, casted_abilities, my_or_opp):
-        casted_list = []
-        for casted_ability in casted_abilities:
+    def _handle_cast_ability(self, cast_abilities, my_or_opp):
+        cast_list = []
+        for cast_ability in cast_abilities:
             targeted_list = []
-            for target in casted_ability["targetHeroIds"]:
+            for target in cast_ability["targetHeroIds"]:
                 targeted_list.append(target)
-            casted_list.append(CastedAbility(casted_ability["casterId"], targeted_list,
-                                             self.map.get_cell(casted_ability["startCell"]["row"],
-                                                               casted_ability["startCell"]["column"]),
-                                             self.map.get_cell(casted_ability["endCell"]["row"],
-                                                               casted_ability["endCell"]["column"]),
-                                             casted_ability["abilityName"]))
+            cast_list.append(CastAbility(cast_ability["casterId"], targeted_list,
+                                         self.map.get_cell(cast_ability["startCell"]["row"],
+                                         cast_ability["startCell"]["column"]),
+                                         self.map.get_cell(cast_ability["endCell"]["row"],
+                                         cast_ability["endCell"]["column"]),
+                                         cast_ability["abilityName"]))
         if my_or_opp == "my":
-            self.my_casted_ability = casted_list
+            self.my_cast_abilities = cast_list
         elif my_or_opp == "opp":
-            self.opp_casted_ability = casted_list
+            self.opp_cast_abilities = cast_list
 
     def get_ability_constants(self, name):
         for constant in self.ability_constants:
@@ -252,7 +280,7 @@ class World:
     def _update_heroes(self, heroes_list):
         for new_hero in heroes_list:
             hero_name = new_hero["type"]
-            hero = copy.copy(self.get_hero(hero_name))
+            hero = copy.copy(self._get_hero(hero_name))
             hero.id = new_hero["id"]
             hero.current_hp = new_hero["currentHP"]
             cooldowns = new_hero.get("cooldowns")
@@ -260,8 +288,8 @@ class World:
                 for cooldown in cooldowns:
                     hero.abilities += [Ability(self.get_ability_constants(cooldown["name"]), cooldown["remCooldown"])]
             if "currentCell" not in new_hero:
-                hero.current_cell = Cell(is_wall=False, is_in_my_respawn_zone=False, is_in_opp_respawn_zone=False,
-                                         is_in_objective_zone=False, is_in_vision=False, row=-1, column=-1)
+                hero.current_cell = Cell(row=-1, column=-1, is_wall=False, is_in_my_respawn_zone=False,
+                                         is_in_opp_respawn_zone=False, is_in_objective_zone=False, is_in_vision=False)
             else:
                 hero.current_cell = self.map.get_cell(new_hero["currentCell"]["row"], new_hero["currentCell"]["column"])
             recent_path = []
@@ -275,16 +303,16 @@ class World:
         for row in range(int(self.map.row_num)):
             for col in range(int(self.map.column_num)):
                 temp_cell = cells_map[row][col]
-                cells[row][col] = Cell(temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
-                                       temp_cell["isInOppRespawnZone"],
-                                       temp_cell["isInObjectiveZone"], temp_cell["isInVision"], row, col)
+                cells[row][col] = Cell(row, col, temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
+                                       temp_cell["isInOppRespawnZone"], temp_cell["isInObjectiveZone"],
+                                       temp_cell["isInVision"])
 
     def ability_constants_init(self, ability_list):
 
         abilities = []
         for dic in ability_list:
             ability_constant = AbilityConstants(dic["name"], dic["type"], dic["range"], dic["APCost"],
-                                                dic["cooldown"], dic["power"], dic["areaOfEffect"], dic["isLobbing"])  # todo : what is real format
+                                                dic["cooldown"], dic["areaOfEffect"], dic["power"], dic["isLobbing"])  # todo : what is real format
             abilities.append(ability_constant)
         self.ability_constants = abilities
 
@@ -304,7 +332,7 @@ class World:
             names = []
             for name in h["abilityNames"]:
                 names.append(name)
-            constant = HeroConstants(h["name"], names, h["maxHP"], h["moveAPCost"])
+            constant = HeroConstants(h["name"], names, h["maxHP"], h["moveAPCost"], h["respawnTime"])
             heroes.append(Hero(0, constant, []))
             constants.append(constant)
         self.heroes = heroes
@@ -321,10 +349,10 @@ class World:
         for row in range(int(row_num)):
             for col in range(int(col_num)):
                 temp_cell = cells_map[row][col]
-                c = Cell(is_wall=temp_cell["isWall"], is_in_my_respawn_zone=temp_cell["isInMyRespawnZone"]
-                         , is_in_opp_respawn_zone=temp_cell["isInOppRespawnZone"],
-                         is_in_objective_zone=temp_cell["isInObjectiveZone"], is_in_vision=False, row=row,
-                         column=col)
+                c = Cell(row=row, column=col, is_wall=temp_cell["isWall"],
+                         is_in_my_respawn_zone=temp_cell["isInMyRespawnZone"],
+                         is_in_opp_respawn_zone=temp_cell["isInOppRespawnZone"],
+                         is_in_objective_zone=temp_cell["isInObjectiveZone"], is_in_vision=False)
                 cells[row][col] = c
                 # c = cells[row][col] = Cell(temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
                 #                            temp_cell["isInOppRespawnZone"],
@@ -335,60 +363,76 @@ class World:
                     my_respawn_zone.append(c)
                 if c.is_in_opp_respawn_zone:
                     opp_respawn_zone.append(c)
-        self.map = Map(row_num, col_num, cells, objective_zone, my_respawn_zone, opp_respawn_zone)
+        self.map = Map(cells, row_num, col_num, my_respawn_zone, opp_respawn_zone, objective_zone)
 
-    def game_constant_init(self, game_constants):
-        self.game_constants = GameConstants(max_ap=game_constants["maxAP"], timeout=game_constants["timeout"],
-                                            max_turns=game_constants["maxTurns"],
-                                            kill_score=game_constants["killScore"],
-                                            objective_zone_score=game_constants["objectiveZoneScore"],
-                                            max_score=game_constants["maxScore"])
-        # TODO add respawnTime for heroes
+    def game_constant_init(self, game_constants_msg):
+        self.game_constants = GameConstants(max_ap=game_constants_msg["maxAP"], timeout=game_constants_msg["timeout"],
+                                            max_turns=game_constants_msg["maxTurns"],
+                                            kill_score=game_constants_msg["killScore"],
+                                            objective_zone_score=game_constants_msg["objectiveZoneScore"],
+                                            max_score=game_constants_msg["maxScore"])
+        self.max_ap = self.game_constants.max_ap
+        self.timeout = self.game_constants.timeout
+        self.max_turns = self.game_constants.max_turns
+        self.kill_score = self.game_constants.kill_score
+        self.objective_zone_score = self.game_constants.objective_zone_score
+        self.max_score = self.game_constants.max_score
 
-    def get_hero_constants(self, hero_name):
-        for h in self.hero_constants:
-            if hero_name == h.name:
-                return h
-
-    def get_hero(self, hero_type):
+    def _get_hero(self, hero_type):
         for hero in self.heroes:
-            if hero.constants.name == hero_type:
+            if hero.name == hero_type:
                 return hero
         return None
 
-    def get_my_hero(self, cell=None, row=None, column=None):
+    def get_hero(self, hero_id):
+        for hero in self.my_heroes:
+            if hero_id == hero.id:
+                return hero
+        for hero in self.opp_heroes:
+            if hero_id == hero.id:
+                return hero
+        return None
+
+    def get_hero_by_cell(self, allegiance, cell=None, row=None, column=None):
         if cell is not None:
-            for hero in self.my_heroes:
+            for hero in allegiance:
                 if hero.current_cell == cell:
                     return hero
         elif row is not None and column is not None:
             if not self.map.is_in_map(row, column):
                 return None
-            for hero in self.my_heroes:
+            for hero in allegiance:
                 if hero.current_cell.row == row and hero.current_cell.column == column:
                     return hero
         return None
 
+    def get_my_hero(self, cell=None, row=None, column=None):
+        return self.get_hero_by_cell(self.my_heroes, cell, row, column)
+
     def get_opp_hero(self, cell=None, row=None, column=None):
-        if cell is not None:
-            for hero in self.opp_heroes:
-                if hero.current_cell == cell:
-                    return hero
-            return None
-        elif row is not None and column is not None:
-            if not self.map.is_in_map(row, column):
-                return None
-            for hero in self.opp_heroes:
-                if hero.current_cell.row == row and hero.current_cell.column == column:
-                    return hero
-        return None
+        return self.get_hero_by_cell(self.opp_heroes, cell, row, column)
 
     def get_impact_cell(self, ability, start_cell, target_cell):
         if ability.is_lobbing:
             return target_cell
         return self.get_ray_cells(start_cell, target_cell)[-1]  # return the last cell of ray cells
 
-    def get_impact_cells(self, ability_name, start_cell, target_cell):
+    def get_impact_cells(self, ability=None, ability_name=None, start_cell=None, start_row=None, start_column=None,
+                         target_cell=None, target_row=None, target_column=None):
+        if ability_name is None:
+            if ability is None:
+                return None
+            ability_name = ability.ability_constants.name
+        if start_cell is None:
+            if start_row is None or start_column is None:
+                return None
+            start_cell = self.map.get_cell(start_row, start_column)
+
+        if target_cell is None:
+            if target_row is None or target_column is None:
+                return None
+            target_cell = self.map.get_cell(target_row, target_column)
+
         ability_constant = self.get_ability_constants(ability_name)
         if ability_constant.is_lobbing:
             return [target_cell]
@@ -426,10 +470,10 @@ class World:
             return None
 
     @staticmethod
-    def slope_equation(x1, y1, x2, y2, x3, y3):
+    def _slope_equation(x1, y1, x2, y2, x3, y3):
         return y3 * (x1 - x2) - x3 * (y1 - y2) - (x1 * y2 - y1 * x2)
 
-    def calculate_neighbour(self, start, target, current, former):
+    def _calculate_neighbour(self, start, target, current, former):
         if start.row == target.row:
             if start.row is not current.row:
                 return None
@@ -462,7 +506,7 @@ class World:
                     x3 = (possible_next_cell.row + current.row) / 2
                     y3 = (possible_next_cell.column + current.column) / 2
 
-                    if self.slope_equation(x1, y1, x2, y2, x3, y3) == 0:
+                    if self._slope_equation(x1, y1, x2, y2, x3, y3) == 0:
                         if current is not former:
                             return possible_next_cell
                         options += [possible_next_cell]
@@ -473,7 +517,7 @@ class World:
                 x4 = (current.row + possible_next_cell.row) / 2 - (possible_next_cell.column - current.column) / 2
                 y4 = (possible_next_cell.column + current.column) / 2 - (possible_next_cell.row - current.row) / 2
 
-                if self.slope_equation(x1, y1, x2, y2, x3, y3) * self.slope_equation(x1, y1, x2, y2, x4, y4) < 0:
+                if self._slope_equation(x1, y1, x2, y2, x3, y3) * self._slope_equation(x1, y1, x2, y2, x4, y4) < 0:
                     if current is not former:
                         return possible_next_cell
                     options += [possible_next_cell]
@@ -491,7 +535,7 @@ class World:
         former = start_cell
         while res[-1] != end_cell:
             current = res[-1]
-            neighbour = self.calculate_neighbour(start_cell, end_cell, current, former)
+            neighbour = self._calculate_neighbour(start_cell, end_cell, current, former)
             if neighbour is None:
                 break
             if neighbour.is_wall:
@@ -504,7 +548,18 @@ class World:
             former = current
         return res
 
-    def is_in_vision(self, start_cell, end_cell):
+    def is_in_vision(self, start_cell=None, start_row=None, start_column=None, end_cell=None, end_row=None,
+                     end_column=None):
+        if start_cell is None:
+            if start_column is None or start_row is None:
+                return None
+            start_cell = self.map.get_cell(start_row, start_column)
+
+        if end_cell is None:
+            if end_column is None or end_row is None:
+                return None
+            end_cell = self.map.get_cell(end_row, end_column)
+
         if start_cell == end_cell:
             return True
         if end_cell == self.get_ray_cells(start_cell, end_cell)[-1]:
@@ -527,14 +582,23 @@ class World:
             return self.map.get_cell(cell.row, cell.column + 1)
         return None
 
-    def get_path_move_directions(self, start_cell, end_cell):
+    def get_path_move_directions(self, start_cell=None, start_row=None, start_column=None, end_cell=None, end_row=None,
+                                 end_column=None):
+        if start_cell is None:
+            if start_row is None or start_column is None:
+                return None
+            start_cell = self.map.get_cell(start_row, start_column)
+        if end_cell is None:
+            if end_row is None or end_column is None:
+                return None
+            end_cell = self.map.get_cell(end_row, end_column)
         if start_cell == end_cell:
             return []
         parents = [[None for _ in range(self.map.column_num)] for _ in range(self.map.row_num)]
         queue = [start_cell]
         visited = [[False for _ in range(self.map.column_num)] for _ in range(self.map.row_num)]
         visited[start_cell.row][start_cell.column] = True
-        if self.bfs(parents, visited, queue, end_cell):
+        if self._bfs(parents, visited, queue, end_cell):
             result = []
             parent = parents[end_cell.row][end_cell.column]
             while parent[1] is not start_cell:
@@ -545,7 +609,7 @@ class World:
             return list(reversed(result))
         return []
 
-    def bfs(self, parents, visited, queue, target):
+    def _bfs(self, parents, visited, queue, target):
         if len(queue) == 0:
             return False
         current = queue[0]
@@ -558,7 +622,7 @@ class World:
                     queue += [neighbour]
                     parents[neighbour.row][neighbour.column] = [direction, current]
                     visited[neighbour.row][neighbour.column] = True
-        return self.bfs(parents, visited, queue[1:], target)
+        return self._bfs(parents, visited, queue[1:], target)
 
     def get_cells_in_aoe(self, cell, area_of_effect):
         cells = []
@@ -601,7 +665,7 @@ class World:
             self.queue.put(Event('cast', [hero_id, ability_name.value, cell.row, cell.column]))
             return
         if hero_id is not None and ability_name is not None and row is not None and column is not None:
-            self.queue.put(Event('cast', [hero_id, ability_name, row, column]))
+            self.queue.put(Event('cast', [hero_id, ability_name.value, row, column]))
             return
         if hero_id is not None and ability is not None and cell is not None:
             self.queue.put(Event('cast', [hero_id, ability.ability_constants.name, cell.row, cell.column]))
@@ -613,7 +677,7 @@ class World:
             self.queue.put(Event('cast', [hero.id, ability_name.value, cell.row, cell.column]))
             return
         if hero is not None and ability_name is not None and row is not None and column is not None:
-            self.queue.put(Event('cast', [hero.id, ability_name, row, column]))
+            self.queue.put(Event('cast', [hero.id, ability_name.value, row, column]))
             return
         if hero is not None and ability is not None and cell is not None:
             self.queue.put(Event('cast', [hero.id, ability.ability_constants.name, cell.row, cell.column]))
@@ -636,7 +700,7 @@ class World:
             self.queue.put(Event('move', [hero, dir_val]))
 
     def pick_hero(self, hero_name):
-        self.queue.put(Event('pick', [hero_name.value()]))
+        self.queue.put(Event('pick', [hero_name.value]))
 
 
 #     void castAbility(int id, Ability ability, Cell targetCell);
