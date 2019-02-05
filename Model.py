@@ -312,7 +312,7 @@ class World:
         abilities = []
         for dic in ability_list:
             ability_constant = AbilityConstants(dic["name"], dic["type"], dic["range"], dic["APCost"],
-                                                dic["cooldown"], dic["areaOfEffect"], dic["power"], dic["isLobbing"])  # todo : what is real format
+                                                dic["cooldown"], dic["areaOfEffect"], dic["power"], dic["isLobbing"])
             abilities.append(ability_constant)
         self.ability_constants = abilities
 
