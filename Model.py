@@ -256,7 +256,7 @@ class World:
                 if hero["type"] == first_hero.name:
                     my_hero = copy.copy(first_hero)
                     my_hero.id = hero["id"]
-                    self.opp_heroes.append(my_heroes)
+                    self.opp_heroes.append(my_hero)
 
     def _handle_turn_message(self, msg):
         msg = msg['args'][0]
