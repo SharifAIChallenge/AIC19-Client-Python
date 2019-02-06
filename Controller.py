@@ -78,7 +78,7 @@ class Controller:
             self.terminate()
             
     def launch_on_thread(self, action, new_world):
-        action(self.world)
+        action(new_world)
         new_world.queue.put(Event('end', [new_world.current_turn]))
         # self.turn_num += 1
 
