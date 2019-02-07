@@ -740,7 +740,7 @@ class World:
         if hero_id is not None:
             self.queue.put(Event('move', [hero_id, dir_val]))
         else:
-            self.queue.put(Event('move', [hero, dir_val]))
+            self.queue.put(Event('move', [hero.id, dir_val]))
 
     def pick_hero(self, hero_name):
         self.queue.put(Event('pick', [hero_name.value]))
