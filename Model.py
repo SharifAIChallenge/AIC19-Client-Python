@@ -235,12 +235,12 @@ class World:
         self.my_cast_abilities = []
         self.opp_cast_abilities = []
         if world is not None:
-            self.__game_constants = world.__game_constants
-            self.max_ap = self.__game_constants.max_ap
-            self.max_turns = self.__game_constants.max_turns
-            self.kill_score = self.__game_constants.kill_score
-            self.objective_zone_score = self.__game_constants.objective_zone_score
-            self.max_score = self.__game_constants.max_score
+            self._game_constants = world._game_constants
+            self.max_ap = self._game_constants.max_ap
+            self.max_turns = self._game_constants.max_turns
+            self.kill_score = self._game_constants.kill_score
+            self.objective_zone_score = self._game_constants.objective_zone_score
+            self.max_score = self._game_constants.max_score
             self.hero_constants = world.hero_constants
             self.ability_constants = world.ability_constants
             self.map = world.map
