@@ -118,6 +118,8 @@ class Hero:
         return None
 
     def __eq__(self, other):
+        if other is None:
+            return False
         if type(self) is type(other):
             return self.id == other.id
         return False
@@ -139,6 +141,8 @@ class Cell:
         self.column = column
 
     def __eq__(self, other):
+        if other is None:
+            return False
         if self.column == other.column and self.row == other.row:
             return True
         return False
