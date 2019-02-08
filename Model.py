@@ -64,8 +64,18 @@ class GameConstants:
 
 class Ability:
     def __init__(self, ability_constants, rem_cooldown):
-        self.ability_constants = ability_constants
+        self._update_constants(ability_constants)
         self.rem_cooldown = rem_cooldown
+
+    def _update_constants(self, ability_constants):
+        self.name = ability_constants.name
+        self.type = ability_constants.type
+        self.range = ability_constants.range
+        self.ap_cost = ability_constants.ap_cost
+        self.cooldown = ability_constants.cooldown
+        self.power = ability_constants.power
+        self.area_of_effect = ability_constants.area_of_effect
+        self.is_lobbing = ability_constants.is_lobbing
 
     def is_ready(self):
         return self.rem_cooldown <= 0
@@ -286,9 +296,9 @@ class World:
                 targeted_list.append(target)
             cast_list.append(CastAbility(cast_ability["casterId"], targeted_list,
                                          self.map.get_cell(cast_ability["startCell"]["row"],
-                                         cast_ability["startCell"]["column"]),
+                                                           cast_ability["startCell"]["column"]),
                                          self.map.get_cell(cast_ability["endCell"]["row"],
-                                         cast_ability["endCell"]["column"]),
+                                                           cast_ability["endCell"]["column"]),
                                          cast_ability["abilityName"]))
         if my_or_opp == "my":
             self.my_cast_abilities = cast_list
@@ -337,7 +347,7 @@ class World:
             hero.respawn_time = new_hero["respawnTime"]
             main_hero_list.append(hero)
 
-    def _update_map(self, cells_map): # TODO check this pooya
+    def _update_map(self, cells_map):  # TODO check this pooya
         cells = [[0 for _ in range(self.map.column_num)] for _ in range(self.map.row_num)]
         for row in range(int(self.map.row_num)):
             for col in range(int(self.map.column_num)):

@@ -90,7 +90,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+*.map
 # Spyder project settings
 .spyderproject
 .spyproject
