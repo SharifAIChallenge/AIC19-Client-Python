@@ -752,9 +752,9 @@ class World:
 
     def cast_ability(self, hero_id=None, hero=None, ability_name=None, ability=None, cell=None, row=None, column=None):
         if World.DEBUGGING_MODE and World.LOG_FILE_POINTER is not None:
-            World.LOG_FILE_POINTER.write('-------cast_ability-------\n' + 'hero_id:' + hero_id + '\thero:' + hero
-                                         + '\tability_name:' + ability_name + '\nability:' + ability + '\tcell:' +
-                                         cell + '\trow:' + row + '\tcolumn:' + column)
+            World.LOG_FILE_POINTER.write('-------cast_ability-------\n' + 'hero_id:' + str(hero_id_ + '\thero:' + str(hero)
+                                         + '\tability_name:' + str(ability_name) + '\nability:' + str(ability) + '\tcell:' +
+                                         str(cell) + '\trow:' + str(row) + '\tcolumn:' + str(column))
         if hero_id is not None and ability_name is not None and cell is not None:
             self.queue.put(Event('cast', [hero_id, ability_name.value, cell.row, cell.column]))
             return
