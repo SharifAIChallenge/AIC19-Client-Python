@@ -782,8 +782,8 @@ class World:
 
     def move_hero(self, hero_id=None, hero=None, direction=None):
         if World.DEBUGGING_MODE and World.LOG_FILE_POINTER is not None:
-            World.LOG_FILE_POINTER.write('-------move hero-------\n' + 'hero_id:' + hero_id +
-                                         '\thero=' + hero + '\n directions:' + direction + '\n\n')
+            World.LOG_FILE_POINTER.write('-------move hero-------\n' + 'hero_id:' + str(hero_id) +
+                                         '\thero=' + str(hero) + '\n directions:' + str(direction) + '\n\n')
         if direction is None:
             return
         if hero_id is None and hero is None:
