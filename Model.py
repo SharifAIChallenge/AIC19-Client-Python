@@ -236,8 +236,7 @@ class World:
         self.opp_cast_abilities = []
         if world is not None:
             game_constants = world._get_game_constants()
-            self._game_constants = game_constants
-
+            self.game_constants = game_constants
             self.max_ap = game_constants.max_ap
             self.max_turns = game_constants.max_turns
             self.kill_score = game_constants.kill_score
@@ -252,7 +251,7 @@ class World:
             self.queue = queue
 
     def _get_game_constants(self):
-        return self._game_constants
+        return self.game_constants
 
     def get_my_dead_heroes(self):
         dead_heroes = []
@@ -374,7 +373,7 @@ class World:
             hero.respawn_time = new_hero["respawnTime"]
             main_hero_list.append(hero)
 
-    def _update_map(self, cells_map):  
+    def _update_map(self, cells_map):
         for row in range(int(self.map.row_num)):
             for col in range(int(self.map.column_num)):
                 temp_cell = cells_map[row][col]
@@ -487,7 +486,7 @@ class World:
         return self.get_hero_by_cell(self.opp_heroes, cell, row, column)
 
     def get_impact_cell(self, ability=None, ability_name=None, start_cell=None, start_row=None,
-                        start_column=None, target_cell=None, target_row=None, target_column=None): 
+                        start_column=None, target_cell=None, target_row=None, target_column=None):
         if ability is None:
             if ability_name is None:
                 return None

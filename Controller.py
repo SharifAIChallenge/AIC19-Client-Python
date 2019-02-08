@@ -85,8 +85,8 @@ class Controller:
         new_world.queue.put(Event('end', [new_world.current_turn]))
 
 
-
-c = Controller()
-if len(sys.argv) > 1 and sys.argv[1] == '--verbose':
-    World.DEBUGGING_MODE = True
-c.start()
+if __name__ == '__main__':
+    c = Controller()
+    if len(sys.argv) > 1 and sys.argv[1] == '--verbose':
+        World.DEBUGGING_MODE = True
+    c.start()
