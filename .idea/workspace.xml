@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a059118d-1b22-4a88-885e-e59f6c938987" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Model.py" beforeDir="false" afterPath="$PROJECT_DIR$/Model.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -20,8 +18,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="220">
-              <caret line="43" column="14" lean-forward="true" selection-start-line="43" selection-start-column="14" selection-end-line="43" selection-end-column="14" />
+            <state relative-caret-position="177">
+              <caret line="455" column="8" selection-start-line="455" selection-start-column="8" selection-end-line="455" selection-end-column="8" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -67,9 +65,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>copy.copy</find>
-      <find>Ability</find>
-      <find>rem_cooldown</find>
       <find>get_hero</find>
       <find>get_ability_constants</find>
       <find>slope_eq</find>
@@ -97,6 +92,9 @@
       <find>ability_constant</find>
       <find>Hero</find>
       <find>Abili</find>
+      <find>ability.abili</find>
+      <find>def get_ability</find>
+      <find>ability.ability_constant</find>
     </findStrings>
     <replaceStrings>
       <replace>dead_heroes</replace>
@@ -296,9 +294,9 @@
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.3293348" />
-      <window_info anchor="bottom" id="SonarLint" order="7" weight="0.3293348" />
+      <window_info active="true" anchor="bottom" id="SonarLint" order="7" visible="true" weight="0.3293348" />
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.3293348" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="9" visible="true" weight="0.3456925" />
+      <window_info anchor="bottom" id="Terminal" order="9" weight="0.3456925" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Python Console" order="11" weight="0.032715376" />
       <window_info anchor="bottom" id="Docker" order="12" show_stripe_button="false" />
@@ -371,8 +369,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="220">
-          <caret line="43" column="14" lean-forward="true" selection-start-line="43" selection-start-column="14" selection-end-line="43" selection-end-column="14" />
+        <state relative-caret-position="177">
+          <caret line="455" column="8" selection-start-line="455" selection-start-column="8" selection-end-line="455" selection-end-column="8" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
           </folding>

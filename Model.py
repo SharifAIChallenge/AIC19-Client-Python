@@ -107,11 +107,11 @@ class Hero:
         self.offensive_abilities = []
         self.dodge_abilities = []
         for ability in self.abilities:
-            if ability.ability_constants.type == AbilityType.DEFENSIVE:
+            if ability.type == AbilityType.DEFENSIVE:
                 self.defensive_abilities += [ability]
-            if ability.ability_constants.type == AbilityType.OFFENSIVE:
+            if ability.type == AbilityType.OFFENSIVE:
                 self.offensive_abilities += [ability]
-            if ability.ability_constants.type == AbilityType.DODGE:
+            if ability.type == AbilityType.DODGE:
                 self.dodge_abilities += [ability]
 
     def set_constants(self, hero_constant):
@@ -123,7 +123,7 @@ class Hero:
 
     def get_ability(self, ability_name):
         for ability in self.abilities:
-            if ability.ability_constants.name == ability_name:
+            if ability.name == ability_name:
                 return ability
         return None
 
@@ -214,12 +214,12 @@ class World:
         self.my_cast_abilities = []
         self.opp_cast_abilities = []
         if world is not None:
-            self.game_constants = world.game_constants
-            self.max_ap = self.game_constants.max_ap
-            self.max_turns = self.game_constants.max_turns
-            self.kill_score = self.game_constants.kill_score
-            self.objective_zone_score = self.game_constants.objective_zone_score
-            self.max_score = self.game_constants.max_score
+            self.__game_constants = world.__game_constants
+            self.max_ap = self.__game_constants.max_ap
+            self.max_turns = self.__game_constants.max_turns
+            self.kill_score = self.__game_constants.kill_score
+            self.objective_zone_score = self.__game_constants.objective_zone_score
+            self.max_score = self.__game_constants.max_score
             self.hero_constants = world.hero_constants
             self.ability_constants = world.ability_constants
             self.map = world.map
@@ -329,11 +329,11 @@ class World:
                                    for ability_name in hero.ability_names]
 
             hero.dodge_abilities += [ability for ability in hero.abilities
-                                     if ability.ability_constants.type == AbilityType.DODGE.value]
+                                     if ability.type == AbilityType.DODGE]
             hero.offensive_abilities += [ability for ability in hero.abilities
-                                         if ability.ability_constants.type == AbilityType.OFFENSIVE.value]
+                                         if ability.type == AbilityType.OFFENSIVE]
             hero.defensive_abilities += [ability for ability in hero.abilities
-                                         if ability.ability_constants.type == AbilityType.DEFENSIVE.value]
+                                         if ability.type == AbilityType.DEFENSIVE]
 
             if "currentCell" not in new_hero:
                 hero.current_cell = Cell(row=-1, column=-1, is_wall=False, is_in_my_respawn_zone=False,
@@ -348,13 +348,9 @@ class World:
             main_hero_list.append(hero)
 
     def _update_map(self, cells_map):  # TODO check this pooya
-        cells = [[0 for _ in range(self.map.column_num)] for _ in range(self.map.row_num)]
         for row in range(int(self.map.row_num)):
             for col in range(int(self.map.column_num)):
                 temp_cell = cells_map[row][col]
-                # cells[row][col] = Cell(row, col, temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
-                #                        temp_cell["isInOppRespawnZone"], temp_cell["isInObjectiveZone"],
-                #                        temp_cell["isInVision"])
                 self.map.cells[row][col].is_in_vision = temp_cell["isInVision"]
 
     def ability_constants_init(self, ability_list):
@@ -404,9 +400,6 @@ class World:
                          is_in_opp_respawn_zone=temp_cell["isInOppRespawnZone"],
                          is_in_objective_zone=temp_cell["isInObjectiveZone"], is_in_vision=False)
                 cells[row][col] = c
-                # c = cells[row][col] = Cell(temp_cell["isWall"], temp_cell["isInMyRespawnZone"],
-                #                            temp_cell["isInOppRespawnZone"],
-                #                            temp_cell["isInObjectiveZone"], False, row, col)
                 if c.is_in_objective_zone:
                     objective_zone.append(c)
                 if c.is_in_my_respawn_zone:
@@ -447,16 +440,18 @@ class World:
 
     def get_hero_by_cell(self, allegiance, cell=None, row=None, column=None):
         if cell is not None:
-            for hero in allegiance:
-                if hero.current_cell == cell:
-                    return hero
+            return self._get_hero_by_cell(allegiance, cell)
         elif row is not None and column is not None:
             if not self.map.is_in_map(row, column):
                 return None
-            for hero in allegiance:
-                if hero.current_cell.row == row and hero.current_cell.column == column:
-                    return hero
+            return self._get_hero_by_cell(allegiance, self.map.get_cell(row, column))
         return None
+
+    @staticmethod
+    def _get_hero_by_cell(self, allegiance, cell):
+        for hero in allegiance:
+            if hero.current_cell == cell:
+                return hero
 
     def get_my_hero(self, cell=None, row=None, column=None):
         return self.get_hero_by_cell(self.my_heroes, cell, row, column)
@@ -466,7 +461,8 @@ class World:
 
     def get_impact_cell(self, ability=None, ability_name=None, ability_constant=None, start_cell=None, start_row=None,
                         start_column=None, target_cell=None, target_row=None, target_column=None):
-        if ability_constant is None:
+        if ability_constant is None:  # todo: ability_constants
+
             if ability is None:
                 if ability_name is None:
                     return None
@@ -573,10 +569,14 @@ class World:
                     if current is not former:
                         return possible_next_cell
                     options += [possible_next_cell]
+
+        def is_between(first, second, between):
+            return (first.row <= between.row <= second.row or first.row >= between.row >= second.row) and \
+                   (first.column <= between.column <= second.column or first.column >= between.column >= second.column)
+
         for option in options:
-            if (start.row <= option.row <= target.row) or (start.row >= option.row >= target.row):
-                if (start.column <= option.column <= target.column) or (start.column >= option.column >= target.column):
-                    return option
+            if is_between(start, target, option):
+                return option
 
     def get_ray_cells(self, start_cell, end_cell):
         if not self.is_accessible(start_cell.row, start_cell.column):
@@ -592,10 +592,10 @@ class World:
                 break
             if neighbour.is_wall:
                 break
-            if neighbour.row != current.row and neighbour.column != current.column:
-                if self.map.get_cell(current.row, neighbour.column).is_wall \
-                        or self.map.get_cell(neighbour.row, current.column).is_wall:
-                    break
+            if neighbour.row != current.row and neighbour.column != current.column and (
+                    self.map.get_cell(current.row, neighbour.column).is_wall
+                    or self.map.get_cell(neighbour.row, current.column).is_wall):
+                break
             res += [neighbour]
             former = current
         return res
@@ -669,11 +669,10 @@ class World:
             return True
         for direction in Direction:
             neighbour = self.get_next_cell(current, direction)
-            if neighbour is not None:
-                if not visited[neighbour.row][neighbour.column]:
-                    queue += [neighbour]
-                    parents[neighbour.row][neighbour.column] = [direction, current]
-                    visited[neighbour.row][neighbour.column] = True
+            if neighbour is not None and not visited[neighbour.row][neighbour.column]:
+                queue += [neighbour]
+                parents[neighbour.row][neighbour.column] = [direction, current]
+                visited[neighbour.row][neighbour.column] = True
         return self._bfs(parents, visited, queue[1:], target)
 
     def get_cells_in_aoe(self, cell, area_of_effect):
@@ -737,10 +736,10 @@ class World:
             self.queue.put(Event('cast', [hero_id, ability_name.value, row, column]))
             return
         if hero_id is not None and ability is not None and cell is not None:
-            self.queue.put(Event('cast', [hero_id, ability.ability_constants.name, cell.row, cell.column]))
+            self.queue.put(Event('cast', [hero_id, ability.name, cell.row, cell.column]))
             return
         if hero_id is not None and ability is not None and row is not None and column is not None:
-            self.queue.put(Event('cast', [hero_id, ability.ability_constants.name, row, column]))
+            self.queue.put(Event('cast', [hero_id, ability.name, row, column]))
             return
         if hero is not None and ability_name is not None and cell is not None:
             self.queue.put(Event('cast', [hero.id, ability_name.value, cell.row, cell.column]))
@@ -749,10 +748,10 @@ class World:
             self.queue.put(Event('cast', [hero.id, ability_name.value, row, column]))
             return
         if hero is not None and ability is not None and cell is not None:
-            self.queue.put(Event('cast', [hero.id, ability.ability_constants.name, cell.row, cell.column]))
+            self.queue.put(Event('cast', [hero.id, ability.name, cell.row, cell.column]))
             return
         if hero is not None and ability is not None and row is not None and column is not None:
-            self.queue.put(Event('cast', [hero.id, ability.ability_constants.name, row, column]))
+            self.queue.put(Event('cast', [hero.id, ability.name, row, column]))
             return
 
     def move_hero(self, hero_id=None, hero=None, direction=None):
@@ -772,9 +771,6 @@ class World:
         self.queue.put(Event('pick', [hero_name.value]))
 
 
-#     void castAbility(int id, Ability ability, Cell targetCell);
-#     void moveHero(int id, Direction[] move_directions);
-#     void pickHero(HeroName heroName)
 class Event:
     EVENT = "event"
 
