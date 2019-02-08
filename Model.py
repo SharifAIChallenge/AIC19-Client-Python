@@ -502,7 +502,7 @@ class World:
 
     def get_impact_cells(self, ability_constant, start_cell, target_cell):
         if ability_constant.is_lobbing:
-            if self.manhattan_distance(cell, start_cell) <= ability_constant.range:
+            if self.manhattan_distance(target_cell, start_cell) <= ability_constant.range:
                 return [target_cell]
         if start_cell.is_wall or start_cell == target_cell and not ability_constant.is_lobbing:
             return [start_cell]
