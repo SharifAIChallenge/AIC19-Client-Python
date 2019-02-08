@@ -50,6 +50,8 @@ class AbilityConstants:
 
 
 class GameConstants:
+    DEBUG_MODE = False
+
     def __init__(self, max_ap, preprocess_timeout, first_move_timeout, normal_timeout,
                  max_turns, kill_score, objective_zone_score, max_score):
         self.max_ap = max_ap
@@ -60,6 +62,9 @@ class GameConstants:
         self.kill_score = kill_score
         self.objective_zone_score = objective_zone_score
         self.max_score = max_score
+        if GameConstants.DEBUG_MODE:
+            import datetime
+            self.log_file = open(datetime)
 
 
 class Ability:

@@ -76,11 +76,11 @@ class Controller:
                 threading.Thread(target=self.launch_on_thread(self.client.action, new_world)).start()
         elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_SHUTDOWN:
             self.terminate()
-            
+
     def launch_on_thread(self, action, new_world):
         action(new_world)
         new_world.queue.put(Event('end', [new_world.current_turn]))
-        # self.turn_num += 1
+
 
 
 c = Controller()
