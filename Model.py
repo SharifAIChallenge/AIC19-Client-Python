@@ -75,6 +75,7 @@ class GameConstants:
 class Ability:
     def __init__(self, ability_constants, rem_cooldown):
         self._update_constants(ability_constants)
+        self.ability_constants = ability_constants
         self.rem_cooldown = rem_cooldown
 
     def _update_constants(self, ability_constants):
@@ -368,7 +369,7 @@ class World:
             hero.respawn_time = new_hero["respawnTime"]
             main_hero_list.append(hero)
 
-    def _update_map(self, cells_map):  # TODO check this pooya
+    def _update_map(self, cells_map):  
         for row in range(int(self.map.row_num)):
             for col in range(int(self.map.column_num)):
                 temp_cell = cells_map[row][col]
@@ -480,15 +481,14 @@ class World:
     def get_opp_hero(self, cell=None, row=None, column=None):
         return self.get_hero_by_cell(self.opp_heroes, cell, row, column)
 
-    def get_impact_cell(self, ability=None, ability_name=None, ability_constant=None, start_cell=None, start_row=None,
-                        start_column=None, target_cell=None, target_row=None, target_column=None):
-        if ability_constant is None:  # todo: ability_constants
-            if ability is None:
-                if ability_name is None:
-                    return None
-                ability_constant = self.get_ability_constants(ability_name)
-            else:
-                ability_constant = ability.ability_constants
+    def get_impact_cell(self, ability=None, ability_name=None, start_cell=None, start_row=None,
+                        start_column=None, target_cell=None, target_row=None, target_column=None): 
+        if ability is None:
+            if ability_name is None:
+                return None
+            ability_constant = self.get_ability_constants(ability_name)
+        else:
+            ability_constant = ability.ability_constants
         if start_cell is None:
             if start_row is None or start_column is None:
                 return None
@@ -502,8 +502,9 @@ class World:
 
     def get_impact_cells(self, ability_constant, start_cell, target_cell):
         if ability_constant.is_lobbing:
-            return [target_cell]
-        if start_cell.is_wall or start_cell == target_cell:
+            if self.manhattan_distance(target_cell, start_cell) <= ability_constant.range:
+                return [target_cell]
+        if start_cell.is_wall or start_cell == target_cell and not ability_constant.is_lobbing:
             return [start_cell]
         last_cell = None
         rey_cells = self.get_ray_cells(start_cell, target_cell)
@@ -512,7 +513,7 @@ class World:
             if self.manhattan_distance(cell, start_cell) > ability_constant.range:
                 continue
             last_cell = cell
-            if self.is_affected(ability_constant, cell):
+            if self.is_affected(ability_constant, cell) or ability_constant.is_lobbing:
                 impact_cells.append(cell)
                 break
         if last_cell not in impact_cells:
