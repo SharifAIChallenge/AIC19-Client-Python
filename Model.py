@@ -69,7 +69,7 @@ class GameConstants:
             import datetime, os
             os.makedirs('/log-files', exist_ok=True)
             World.LOG_FILE_POINTER = open('/log-files/client' + '- ' +
-                                          datetime.datetime.now().__str__() + '.log', 'w+')
+                                          str(datetime.datetime.now()) + '.log', 'w+')
 
 
 class Ability:
@@ -92,7 +92,7 @@ class Ability:
         return self.rem_cooldown <= 0
 
     def __str__(self):
-        return 'name:' + self.name + '\trem_cooldown:' + self.rem_cooldown
+        return 'name:' + self.name + '\trem_cooldown:' + str(self.rem_cooldown)
 
 
 class HeroConstants:
@@ -152,7 +152,7 @@ class Hero:
         return self.id
 
     def __str__(self):
-        return 'id:' + self.id + '\t name:' + self.name
+        return 'id:' + str(self.id) + '\t name:' + self.name
 
 
 class Cell:
@@ -178,7 +178,7 @@ class Cell:
         return self.row * 32 + self.column
 
     def __str__(self):
-        return 'row:' + self.row + '\tcolumn:' + self.column
+        return 'row:' + str(self.row) + '\tcolumn:' + str(self.column)
 
 
 class Map:
@@ -205,7 +205,7 @@ class Map:
         string = ''
         for row in self.row_num:
             for col in self.column_num:
-                string += self.get_cell(row, col)
+                string += str(self.get_cell(row, col))
             string += '\n'
 
 
