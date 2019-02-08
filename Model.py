@@ -207,6 +207,7 @@ class Map:
                 string += self.get_cell(row, col)
             string += '\n'
 
+
 class CastAbility:
     def __init__(self, caster_id, targeted_ids, start_cell, end_cell, ability_name):
         self.caster_id = caster_id
@@ -262,11 +263,10 @@ class World:
         return dead_memes
 
     def _handle_init_message(self, msg):
-        if World._DEBUGGING_MODE:
-            if World._LOG_FILE_POINTER is None:
-                World._LOG_FILE_POINTER = open("client.log", 'w')
-            World._LOG_FILE_POINTER.write(str(msg))
-            World._LOG_FILE_POINTER.write('\n')
+        if World.DEBUGGING_MODE:
+            if World.LOG_FILE_POINTER is not None:
+                World.LOG_FILE_POINTER.write(str(msg))
+                World.LOG_FILE_POINTER.write('\n')
         msg = msg['args'][0]
         self.game_constant_init(msg['gameConstants'])
         self.map_init(msg["map"])
@@ -778,7 +778,7 @@ class World:
 
     def move_hero(self, hero_id=None, hero=None, direction=None):
         if World.DEBUGGING_MODE and World.LOG_FILE_POINTER is not None:
-            World.LOG_FILE_POINTER.write('-------move hero-------\n' + 'hero_id:'+ hero_id +
+            World.LOG_FILE_POINTER.write('-------move hero-------\n' + 'hero_id:' + hero_id +
                                          '\thero=' + hero + '\n directions:' + direction + '\n\n')
         if direction is None:
             return
