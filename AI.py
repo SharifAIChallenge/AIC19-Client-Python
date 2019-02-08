@@ -1,3 +1,6 @@
+import Model
+
+
 class AI:
     def preprocess(self, world):
         print("preprocess")

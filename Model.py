@@ -1,4 +1,3 @@
-import copy
 from enum import Enum
 
 
@@ -37,6 +36,12 @@ class AbilityType(Enum):
     OFFENSIVE = "OFFENSIVE"
 
 
+class Phase(Enum):
+    PICK = "PICK"
+    MOVE = "MOVE"
+    ACTION = "ACTION"
+
+
 class AbilityConstants:
     def __init__(self, name, type, range, ap_cost, cooldown, area_of_effect, power, is_lobbing):
         self.name = name
@@ -50,8 +55,6 @@ class AbilityConstants:
 
 
 class GameConstants:
-    DEBUG_MODE = False
-
     def __init__(self, max_ap, preprocess_timeout, first_move_timeout, normal_timeout,
                  max_turns, kill_score, objective_zone_score, max_score):
         self.max_ap = max_ap
@@ -62,9 +65,11 @@ class GameConstants:
         self.kill_score = kill_score
         self.objective_zone_score = objective_zone_score
         self.max_score = max_score
-        if GameConstants.DEBUG_MODE:
-            import datetime
-            self.log_file = open(datetime)
+        if World.DEBUGGING_MODE:
+            import datetime, os
+            os.makedirs('/log-files', exist_ok=True)
+            World.LOG_FILE_POINTER = open('/log-files/client' + '- ' +
+                                          datetime.datetime.now().__str__() + '.log', 'w+')
 
 
 class Ability:
@@ -84,6 +89,9 @@ class Ability:
 
     def is_ready(self):
         return self.rem_cooldown <= 0
+
+    def __str__(self):
+        return 'name:' + self.name + '\trem_cooldown:' + self.rem_cooldown
 
 
 class HeroConstants:
@@ -142,6 +150,9 @@ class Hero:
     def __hash__(self):
         return self.id
 
+    def __str__(self):
+        return 'id:' + self.id + '\t name:' + self.name
+
 
 class Cell:
     def __init__(self, row, column, is_wall, is_in_my_respawn_zone, is_in_opp_respawn_zone, is_in_objective_zone,
@@ -165,6 +176,9 @@ class Cell:
     def __hash__(self):
         return self.row * 32 + self.column
 
+    def __str__(self):
+        return 'row:' + self.row + '\tcolumn:' + self.column
+
 
 class Map:
     def __init__(self, cells, row_num, column_num, my_respawn_zone, opp_respawn_zone, objective_zone):
@@ -186,12 +200,12 @@ class Map:
         else:
             return None
 
-
-class Phase(Enum):
-    PICK = "PICK"
-    MOVE = "MOVE"
-    ACTION = "ACTION"
-
+    def __str__(self):
+        string = ''
+        for row in self.row_num:
+            for col in self.column_num:
+                string += self.get_cell(row, col)
+            string += '\n'
 
 class CastAbility:
     def __init__(self, caster_id, targeted_ids, start_cell, end_cell, ability_name):
@@ -203,8 +217,8 @@ class CastAbility:
 
 
 class World:
-    _DEBUGGING_MODE = False
-    _LOG_FILE_POINTER = None
+    DEBUGGING_MODE = False
+    LOG_FILE_POINTER = None
 
     def __init__(self, world=None, queue=None):
         self.heroes = []
@@ -260,6 +274,7 @@ class World:
         self.ability_constants_init(msg["abilityConstants"])
 
     def _handle_pick_message(self, msg):
+        import copy
         msg = msg['args'][0]
         my_heroes = msg["myHeroes"]
         opp_heroes = msg["oppHeroes"]
@@ -316,6 +331,7 @@ class World:
                 return constant
 
     def _update_heroes(self, heroes_list, main_hero_list):
+        import copy
         for new_hero in heroes_list:
             hero_name = new_hero["type"]
             hero = copy.copy(self._get_hero(hero_name))
@@ -453,7 +469,7 @@ class World:
         return None
 
     @staticmethod
-    def _get_hero_by_cell(self, allegiance, cell):
+    def _get_hero_by_cell(allegiance, cell):
         for hero in allegiance:
             if hero.current_cell == cell:
                 return hero
@@ -467,7 +483,6 @@ class World:
     def get_impact_cell(self, ability=None, ability_name=None, ability_constant=None, start_cell=None, start_row=None,
                         start_column=None, target_cell=None, target_row=None, target_column=None):
         if ability_constant is None:  # todo: ability_constants
-
             if ability is None:
                 if ability_name is None:
                     return None
@@ -483,7 +498,6 @@ class World:
             if target_row is None or target_column is None:
                 return None
             target_cell = self.map.get_cell(target_row, target_column)
-
         return self.get_impact_cells(ability_constant, start_cell, target_cell)[-1]
 
     def get_impact_cells(self, ability_constant, start_cell, target_cell):
@@ -494,7 +508,6 @@ class World:
         last_cell = None
         rey_cells = self.get_ray_cells(start_cell, target_cell)
         impact_cells = []
-
         for cell in rey_cells:
             if self.manhattan_distance(cell, start_cell) > ability_constant.range:
                 continue
@@ -734,6 +747,10 @@ class World:
         return heroes
 
     def cast_ability(self, hero_id=None, hero=None, ability_name=None, ability=None, cell=None, row=None, column=None):
+        if World.DEBUGGING_MODE and World.LOG_FILE_POINTER is not None:
+            World.LOG_FILE_POINTER.write('-------cast_ability-------\n' + 'hero_id:' + hero_id + '\thero:' + hero
+                                         + '\tability_name:' + ability_name + '\nability:' + ability + '\tcell:' +
+                                         cell + '\trow:' + row + '\tcolumn:' + column)
         if hero_id is not None and ability_name is not None and cell is not None:
             self.queue.put(Event('cast', [hero_id, ability_name.value, cell.row, cell.column]))
             return
@@ -760,6 +777,9 @@ class World:
             return
 
     def move_hero(self, hero_id=None, hero=None, direction=None):
+        if World.DEBUGGING_MODE and World.LOG_FILE_POINTER is not None:
+            World.LOG_FILE_POINTER.write('-------move hero-------\n' + 'hero_id:'+ hero_id +
+                                         '\thero=' + hero + '\n directions:' + direction + '\n\n')
         if direction is None:
             return
         if hero_id is None and hero is None:
@@ -773,6 +793,8 @@ class World:
             self.queue.put(Event('move', [hero.id, dir_val]))
 
     def pick_hero(self, hero_name):
+        if World.DEBUGGING_MODE and World.LOG_FILE_POINTER is not None:
+            World.LOG_FILE_POINTER.write('-------pick hero-------' + '\n' + hero_name + '\n\n')
         self.queue.put(Event('pick', [hero_name.value]))
 
 

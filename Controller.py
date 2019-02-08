@@ -39,14 +39,17 @@ class Controller:
                     'name': Event.EVENT,
                     'args': [{'type': event.type, 'args': event.args}]
                 }
+                if World.DEBUGGING_MODE and World.LOG_FILE_POINTER is not None:
+                    World.LOG_FILE_POINTER.write('------send message to server-----\n ' + message.__str__())
                 self.network.send(message)
 
         Thread(target=run, daemon=True).start()
 
     def terminate(self):
-        # if World._LOG_FILE_POINTER is not None:
-        #     World._LOG_FILE_POINTER.flush()
-        #     World._LOG_FILE_POINTER.close() TODO check these comments
+        if World.LOG_FILE_POINTER is not None:
+            World.LOG_FILE_POINTER.write('finished')
+            World.LOG_FILE_POINTER.flush()
+            World.LOG_FILE_POINTER.close()
         print("finished!")
         self.network.close()
         self.sending_flag = False
@@ -85,5 +88,5 @@ class Controller:
 
 c = Controller()
 if len(sys.argv) > 1 and sys.argv[1] == '--verbose':
-    World._DEBUGGING_MODE = True
+    World.DEBUGGING_MODE = True
 c.start()
