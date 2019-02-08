@@ -304,11 +304,23 @@ class World:
             hero.current_hp = new_hero["currentHP"]
             cooldowns = new_hero.get("cooldowns")
             hero.abilities = []
+            hero.dodge_abilities = []
+            hero.offensive_abilities = []
+            hero.defensive_abilities = []
             if cooldowns is not None:
                 hero.abilities += [Ability(self.get_ability_constants(cooldown["name"]), cooldown["remCooldown"])
                                    for cooldown in cooldowns]
             else:
-                hero.abilities += [Ability(ability_name, -1) for ability_name in hero.ability_names]
+                hero.abilities += [Ability(self.get_ability_constants(ability_name), -1)
+                                   for ability_name in hero.ability_names]
+
+            hero.dodge_abilities += [ability for ability in hero.abilities
+                                     if ability.ability_constants.type == AbilityType.DODGE.value]
+            hero.offensive_abilities += [ability for ability in hero.abilities
+                                         if ability.ability_constants.type == AbilityType.OFFENSIVE.value]
+            hero.defensive_abilities += [ability for ability in hero.abilities
+                                         if ability.ability_constants.type == AbilityType.DEFENSIVE.value]
+
             if "currentCell" not in new_hero:
                 hero.current_cell = Cell(row=-1, column=-1, is_wall=False, is_in_my_respawn_zone=False,
                                          is_in_opp_respawn_zone=False, is_in_objective_zone=False, is_in_vision=False)
