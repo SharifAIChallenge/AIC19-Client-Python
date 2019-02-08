@@ -66,9 +66,8 @@ class GameConstants:
         self.objective_zone_score = objective_zone_score
         self.max_score = max_score
         if World.DEBUGGING_MODE:
-            import datetime, os
-            os.makedirs('/log-files', exist_ok=True)
-            World.LOG_FILE_POINTER = open('/log-files/client' + '- ' +
+            import datetime
+            World.LOG_FILE_POINTER = open('client' + '- ' +
                                           str(datetime.datetime.now()) + '.log', 'w+')
 
 
@@ -799,7 +798,7 @@ class World:
 
     def pick_hero(self, hero_name):
         if World.DEBUGGING_MODE and World.LOG_FILE_POINTER is not None:
-            World.LOG_FILE_POINTER.write('-------pick hero-------' + '\n' + hero_name + '\n\n')
+            World.LOG_FILE_POINTER.write('-------pick hero-------' + '\n' + str(hero_name) + '\n\n')
         self.queue.put(Event('pick', [hero_name.value]))
 
 
