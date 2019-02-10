@@ -97,10 +97,17 @@ class Ability:
 class HeroConstants:
     def __init__(self, hero_name, ability_names, max_hp, move_ap_cost, respawn_time):
         self.hero_name = hero_name
-        self.ability_names = ability_names
+        self.ability_names = self._get_ability_name_enum(ability_names)
         self.max_hp = max_hp
         self.move_ap_cost = move_ap_cost
         self.respawn_time = respawn_time
+
+    @staticmethod
+    def _get_ability_name_enum(param):
+        for name in AbilityName:
+            if name.value == param:
+                return name
+        return param
 
 
 class Hero:
@@ -383,7 +390,8 @@ class World:
 
         abilities = []
         for dic in ability_list:
-            ability_constant = AbilityConstants(dic["name"], self._get_ability_type(dic["type"]), dic["range"], dic["APCost"],
+            ability_constant = AbilityConstants(dic["name"], self._get_ability_type(dic["type"]), dic["range"],
+                                                dic["APCost"],
                                                 dic["cooldown"], dic["areaOfEffect"], dic["power"], dic["isLobbing"])
             abilities.append(ability_constant)
         self.ability_constants = abilities
