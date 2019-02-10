@@ -202,10 +202,11 @@ class Map:
 
     def __str__(self):
         string = ''
-        for row in self.row_num:
-            for col in self.column_num:
+        for row in range(self.row_num):
+            for col in range(self.column_num):
                 string += str(self.get_cell(row, col))
             string += '\n'
+        return string
 
 
 class CastAbility:
