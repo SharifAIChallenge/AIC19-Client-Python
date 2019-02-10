@@ -67,9 +67,8 @@ class GameConstants:
         self.max_score = max_score
         if World.DEBUGGING_MODE:
             import datetime
-            World.LOG_FILE_POINTER = open('client' + '- ' +
-                                          str(datetime.datetime.now()) + '.log', 'w+')
-
+            World.LOG_FILE_POINTER = open('client' + '-' +
+                                          datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S.%f") + '.log', 'w+')
 
 class Ability:
     def __init__(self, ability_constants, rem_cooldown):
@@ -753,9 +752,10 @@ class World:
 
     def cast_ability(self, hero_id=None, hero=None, ability_name=None, ability=None, cell=None, row=None, column=None):
         if World.DEBUGGING_MODE and World.LOG_FILE_POINTER is not None:
-            World.LOG_FILE_POINTER.write('-------cast_ability-------\n' + 'hero_id:' + str(hero_id) + '\thero:' + str(hero)
-                                         + '\tability_name:' + str(ability_name) + '\nability:' + str(ability) + '\tcell:' +
-                                         str(cell) + '\trow:' + str(row) + '\tcolumn:' + str(column))
+            World.LOG_FILE_POINTER.write(
+                '-------cast_ability-------\n' + 'hero_id:' + str(hero_id) + '\thero:' + str(hero)
+                + '\tability_name:' + str(ability_name) + '\nability:' + str(ability) + '\tcell:' +
+                str(cell) + '\trow:' + str(row) + '\tcolumn:' + str(column))
         if hero_id is not None and ability_name is not None and cell is not None:
             self.queue.put(Event('cast', [hero_id, ability_name.value, cell.row, cell.column]))
             return
@@ -804,7 +804,7 @@ class World:
 
 
 class Event:
-    EVENT = "event"
+    EVENT = "event‌"
 
     def __init__(self, type, args):
         self.type = type
