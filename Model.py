@@ -113,7 +113,6 @@ class HeroConstants:
 class Hero:
     def __init__(self, hero_id, hero_constant, abilities, recent_path=None):
         self.id = hero_id
-        self.abilities = abilities
         self.name = hero_constant.hero_name
         self.ability_names = hero_constant.ability_names
         self.max_hp = hero_constant.max_hp
@@ -123,6 +122,10 @@ class Hero:
         self.recent_path = recent_path
         self.recent_path = recent_path
         self.current_hp = 0
+        self.update_abilities(abilities)
+
+    def update_abilities(self, abilities):
+        self.abilities = abilities
         self.defensive_abilities = []
         self.offensive_abilities = []
         self.dodge_abilities = []
@@ -296,13 +299,17 @@ class World:
                 if hero["type"] == first_hero.name:
                     my_hero = copy.copy(first_hero)
                     my_hero.id = hero["id"]
+                    my_hero.update_abilities([Ability(self._get_ability_constants(ability_name), 0)]
+                                             for ability_name in my_hero.ability_names)
                     self.my_heroes.append(my_hero)
         for hero in opp_heroes:
             for first_hero in self.heroes:
                 if hero["type"] == first_hero.name:
-                    my_hero = copy.copy(first_hero)
-                    my_hero.id = hero["id"]
-                    self.opp_heroes.append(my_hero)
+                    opp_hero = copy.copy(first_hero)
+                    opp_hero.id = hero["id"]
+                    opp_hero.update_abilities([Ability(self._get_ability_constants(ability_name), 0)] for ability_name
+                                              in opp_hero.ability_names)
+                    self.opp_heroes.append(opp_hero)
 
     def _handle_turn_message(self, msg):
         msg = msg['args'][0]
@@ -413,8 +420,7 @@ class World:
             for name in h["abilityNames"]:
                 names.append(name)
             constant = HeroConstants(h["name"], names, h["maxHP"], h["moveAPCost"], h["respawnTime"])
-            heroes.append(Hero(0, constant,
-                               [Ability(self._get_ability_constants(ability_name), 0) for ability_name in names]))
+            heroes.append(Hero(0, constant, []))
             constants.append(constant)
         self.heroes = heroes
         self.hero_constants = constants
