@@ -754,41 +754,36 @@ class World:
     def get_opp_heroes_in_cells(self, cells):
         heroes = []
         for cell in cells:
-            hero = self._get_opp_hero(cell)
+            hero = self.get_opp_hero(cell)
             if hero:
                 heroes.append(hero)
         return heroes
 
     def cast_ability(self, hero_id=None, hero=None, ability_name=None, ability=None, cell=None, row=None, column=None):
         if World.DEBUGGING_MODE and World.LOG_FILE_POINTER is not None:
-            World.LOG_FILE_POINTER.write(
-                '-------cast_ability-------\n' + 'hero_id:' + str(hero_id) + '\thero:' + str(hero)
-                + '\tability_name:' + str(ability_name) + '\nability:' + str(ability) + '\tcell:' +
-                str(cell) + '\trow:' + str(row) + '\tcolumn:' + str(column))
-        if hero_id is not None and ability_name is not None and cell is not None:
-            self.queue.put(Event('cast', [hero_id, ability_name.value, cell.row, cell.column]))
-            return
-        if hero_id is not None and ability_name is not None and row is not None and column is not None:
-            self.queue.put(Event('cast', [hero_id, ability_name.value, row, column]))
-            return
-        if hero_id is not None and ability is not None and cell is not None:
-            self.queue.put(Event('cast', [hero_id, ability.name, cell.row, cell.column]))
-            return
-        if hero_id is not None and ability is not None and row is not None and column is not None:
-            self.queue.put(Event('cast', [hero_id, ability.name, row, column]))
-            return
-        if hero is not None and ability_name is not None and cell is not None:
-            self.queue.put(Event('cast', [hero.id, ability_name.value, cell.row, cell.column]))
-            return
-        if hero is not None and ability_name is not None and row is not None and column is not None:
-            self.queue.put(Event('cast', [hero.id, ability_name.value, row, column]))
-            return
-        if hero is not None and ability is not None and cell is not None:
-            self.queue.put(Event('cast', [hero.id, ability.name, cell.row, cell.column]))
-            return
-        if hero is not None and ability is not None and row is not None and column is not None:
-            self.queue.put(Event('cast', [hero.id, ability.name, row, column]))
-            return
+            World.LOG_FILE_POINTER.write('-------cast_ability-------\n' + 'hero_id:' + str(hero_id) + '\thero:' +
+                                         str(hero) + '\tability_name:' + str(ability_name) + '\nability:' +
+                                         str(ability) + '\tcell:' + str(cell) + '\trow:' + str(row) + '\tcolumn:'
+                                         + str(column))
+        args = []
+        if hero_id is not None:
+            args += [hero_id]
+        elif hero is not None:
+            args += hero.id
+
+        if ability_name is not None:
+            args += [ability_name.value]
+        elif ability is not None:
+            args += [ability.name]
+
+        if cell is not None:
+            args += [cell.row, cell. column]
+        elif row is not None and column is not None:
+            args += [row, column]
+
+        args += [self.current_turn]
+        if len(args) == 5:
+            self.queue.put(Event('cast', args))
 
     def move_hero(self, hero_id=None, hero=None, direction=None):
         if World.DEBUGGING_MODE and World.LOG_FILE_POINTER is not None:
@@ -802,14 +797,15 @@ class World:
             return
         dir_val = direction.value
         if hero_id is not None:
-            self.queue.put(Event('move', [hero_id, dir_val]))
+            self.queue.put(Event('move', [hero_id, dir_val, self.current_turn, self.move_phase_num]))
         else:
-            self.queue.put(Event('move', [hero.id, dir_val]))
+            self.queue.put(Event('move', [hero.id, dir_val, self.current_turn, self.move_phase_num]))
 
     def pick_hero(self, hero_name):
         if World.DEBUGGING_MODE and World.LOG_FILE_POINTER is not None:
-            World.LOG_FILE_POINTER.write('\n' + '-------pick hero-------' + '\n' + str(hero_name) + '\n\n')
-        self.queue.put(Event('pick', [hero_name.value]))
+            World.LOG_FILE_POINTER.write('\n' + '-------pick hero-------' + '\n' + str(hero_name) + '\nturn: ' +
+                                         str(self.current_turn) + '\n\n')
+        self.queue.put(Event('pick', [hero_name.value, self.current_turn]))
 
     @staticmethod
     def _get_ability_type(param):
