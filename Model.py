@@ -113,7 +113,6 @@ class HeroConstants:
 class Hero:
     def __init__(self, hero_id, hero_constant, abilities, recent_path=None):
         self.id = hero_id
-        self.abilities = abilities
         self.name = hero_constant.hero_name
         self.ability_names = hero_constant.ability_names
         self.max_hp = hero_constant.max_hp
@@ -123,6 +122,10 @@ class Hero:
         self.recent_path = recent_path
         self.recent_path = recent_path
         self.current_hp = 0
+        self.update_abilities(abilities)
+
+    def update_abilities(self, abilities):
+        self.abilities = abilities
         self.defensive_abilities = []
         self.offensive_abilities = []
         self.dodge_abilities = []
@@ -282,8 +285,8 @@ class World:
         msg = msg['args'][0]
         self._game_constant_init(msg['gameConstants'])
         self._map_init(msg["map"])
-        self._hero_init(msg["heroConstants"])
         self._ability_constants_init(msg["abilityConstants"])
+        self._hero_init(msg["heroConstants"])
 
     def _handle_pick_message(self, msg):
         import copy
@@ -296,13 +299,17 @@ class World:
                 if hero["type"] == first_hero.name:
                     my_hero = copy.copy(first_hero)
                     my_hero.id = hero["id"]
+                    my_hero.update_abilities([Ability(self._get_ability_constants(ability_name), 0)
+                                             for ability_name in my_hero.ability_names])
                     self.my_heroes.append(my_hero)
         for hero in opp_heroes:
             for first_hero in self.heroes:
                 if hero["type"] == first_hero.name:
-                    my_hero = copy.copy(first_hero)
-                    my_hero.id = hero["id"]
-                    self.opp_heroes.append(my_hero)
+                    opp_hero = copy.copy(first_hero)
+                    opp_hero.id = hero["id"]
+                    opp_hero.update_abilities([Ability(self._get_ability_constants(ability_name), 0) for ability_name
+                                              in opp_hero.ability_names])
+                    self.opp_heroes.append(opp_hero)
 
     def _handle_turn_message(self, msg):
         msg = msg['args'][0]
@@ -327,10 +334,10 @@ class World:
             for target in cast_ability["targetHeroIds"]:
                 targeted_list.append(target)
             cast_list.append(CastAbility(cast_ability["casterId"], targeted_list,
-                                         self.map.get_cell(cast_ability["startCell"]["row"],
-                                                           cast_ability["startCell"]["column"]),
-                                         self.map.get_cell(cast_ability["endCell"]["row"],
-                                                           cast_ability["endCell"]["column"]),
+                                         self.map.get_cell(cast_ability["startCell"]["row"] if "startCell" in cast_ability else -1,
+                                                           cast_ability["startCell"]["column"] if "startCell" in cast_ability else -1),
+                                         self.map.get_cell(cast_ability["endCell"]["row"] if "endCell" in cast_ability else -1,
+                                                           cast_ability["endCell"]["column"] if "endCell" in cast_ability else -1),
                                          cast_ability["abilityName"]))
         if my_or_opp == "my":
             self.my_cast_abilities = cast_list
@@ -391,8 +398,8 @@ class World:
         abilities = []
         for dic in ability_list:
             ability_constant = AbilityConstants(dic["name"], self._get_ability_type(dic["type"]), dic["range"],
-                                                dic["APCost"],
-                                                dic["cooldown"], dic["areaOfEffect"], dic["power"], dic["isLobbing"])
+                                                dic["APCost"], dic["cooldown"], dic["areaOfEffect"], dic["power"],
+                                                dic["isLobbing"])
             abilities.append(ability_constant)
         self.ability_constants = abilities
 
@@ -666,7 +673,9 @@ class World:
         return None
 
     def get_path_move_directions(self, start_cell=None, start_row=None, start_column=None, end_cell=None, end_row=None,
-                                 end_column=None):
+                                 end_column=None, not_pass=None):
+        if not_pass is None:
+            not_pass = []
         if start_cell is None:
             if start_row is None or start_column is None:
                 return None
@@ -681,7 +690,7 @@ class World:
         queue = [start_cell]
         visited = [[False for _ in range(self.map.column_num)] for _ in range(self.map.row_num)]
         visited[start_cell.row][start_cell.column] = True
-        if self._bfs(parents, visited, queue, end_cell):
+        if self._bfs(parents, visited, queue, end_cell, not_pass):
             result = []
             parent = parents[end_cell.row][end_cell.column]
             while parent[1] is not start_cell:
@@ -692,7 +701,7 @@ class World:
             return list(reversed(result))
         return []
 
-    def _bfs(self, parents, visited, queue, target):
+    def _bfs(self, parents, visited, queue, target, not_pass):
         if len(queue) == 0:
             return False
         current = queue[0]
@@ -700,11 +709,11 @@ class World:
             return True
         for direction in Direction:
             neighbour = self._get_next_cell(current, direction)
-            if neighbour is not None and not visited[neighbour.row][neighbour.column]:
+            if neighbour is not None and not visited[neighbour.row][neighbour.column] and neighbour not in not_pass:
                 queue += [neighbour]
                 parents[neighbour.row][neighbour.column] = [direction, current]
                 visited[neighbour.row][neighbour.column] = True
-        return self._bfs(parents, visited, queue[1:], target)
+        return self._bfs(parents, visited, queue[1:], target, not_pass)
 
     def get_cells_in_aoe(self, cell, area_of_effect):
         cells = []
@@ -769,7 +778,7 @@ class World:
         if hero_id is not None:
             args += [hero_id]
         elif hero is not None:
-            args += hero.id
+            args += [hero.id]
 
         if ability_name is not None:
             args += [ability_name.value]
