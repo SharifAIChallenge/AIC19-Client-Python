@@ -8,7 +8,7 @@ import json
 from Model import *
 
 
-class Network():
+class Network:
     def __init__(self, ip, port, token, message_handler):
         self.receive_flag = True
         self.ip = ip
