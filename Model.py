@@ -299,16 +299,16 @@ class World:
                 if hero["type"] == first_hero.name:
                     my_hero = copy.copy(first_hero)
                     my_hero.id = hero["id"]
-                    my_hero.update_abilities([Ability(self._get_ability_constants(ability_name), 0)]
-                                             for ability_name in my_hero.ability_names)
+                    my_hero.update_abilities([Ability(self._get_ability_constants(ability_name), 0)
+                                             for ability_name in my_hero.ability_names])
                     self.my_heroes.append(my_hero)
         for hero in opp_heroes:
             for first_hero in self.heroes:
                 if hero["type"] == first_hero.name:
                     opp_hero = copy.copy(first_hero)
                     opp_hero.id = hero["id"]
-                    opp_hero.update_abilities([Ability(self._get_ability_constants(ability_name), 0)] for ability_name
-                                              in opp_hero.ability_names)
+                    opp_hero.update_abilities([Ability(self._get_ability_constants(ability_name), 0) for ability_name
+                                              in opp_hero.ability_names])
                     self.opp_heroes.append(opp_hero)
 
     def _handle_turn_message(self, msg):
@@ -334,10 +334,10 @@ class World:
             for target in cast_ability["targetHeroIds"]:
                 targeted_list.append(target)
             cast_list.append(CastAbility(cast_ability["casterId"], targeted_list,
-                                         self.map.get_cell(cast_ability["startCell"]["row"],
-                                                           cast_ability["startCell"]["column"]),
-                                         self.map.get_cell(cast_ability["endCell"]["row"],
-                                                           cast_ability["endCell"]["column"]),
+                                         self.map.get_cell(cast_ability["startCell"]["row"] if "startCell" in cast_ability else -1,
+                                                           cast_ability["startCell"]["column"] if "startCell" in cast_ability else -1),
+                                         self.map.get_cell(cast_ability["endCell"]["row"] if "endCell" in cast_ability else -1,
+                                                           cast_ability["endCell"]["column"] if "endCell" in cast_ability else -1),
                                          cast_ability["abilityName"]))
         if my_or_opp == "my":
             self.my_cast_abilities = cast_list
@@ -778,7 +778,7 @@ class World:
         if hero_id is not None:
             args += [hero_id]
         elif hero is not None:
-            args += hero.id
+            args += [hero.id]
 
         if ability_name is not None:
             args += [ability_name.value]
