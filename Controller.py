@@ -65,24 +65,28 @@ class Controller:
     def handle_message(self, message):
         if message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_INIT:
             self.world._handle_init_message(message)
-            threading.Thread(target=self.launch_on_thread(self.client.preprocess, self.world)).start()
+            threading.Thread(target=self.launch_on_thread(self.client.preprocess, 'init', self.world, [])).start()
         elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_PICK:
             new_world = World(world=self.world)
             new_world._handle_pick_message(message)
-            threading.Thread(target=self.launch_on_thread(self.client.pick, new_world)).start()
+            threading.Thread(target=self.launch_on_thread(self.client.pick, 'pick', new_world,
+                                                          [new_world.current_turn])).start()
         elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_TURN:
             new_world = World(world=self.world)
             new_world._handle_turn_message(message)
             if new_world.current_phase == Phase.MOVE:
-                threading.Thread(target=self.launch_on_thread(self.client.move, new_world)).start()
+                threading.Thread(target=self.launch_on_thread(self.client.move, 'move', new_world,
+                                                              [new_world.current_turn,
+                                                               new_world.move_phase_num])).start()
             elif new_world.current_phase == Phase.ACTION:
-                threading.Thread(target=self.launch_on_thread(self.client.action, new_world)).start()
+                threading.Thread(target=self.launch_on_thread(self.client.action, 'action', new_world,
+                                                              [new_world.current_turn])).start()
         elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_SHUTDOWN:
             self.terminate()
 
-    def launch_on_thread(self, action, new_world):
+    def launch_on_thread(self, action, name, new_world, args):
         action(new_world)
-        new_world.queue.put(Event('end', [new_world.current_turn]))
+        new_world.queue.put(Event(name + '-end', args))
 
 
 if __name__ == '__main__':
