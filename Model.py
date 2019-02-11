@@ -282,8 +282,8 @@ class World:
         msg = msg['args'][0]
         self._game_constant_init(msg['gameConstants'])
         self._map_init(msg["map"])
-        self._hero_init(msg["heroConstants"])
         self._ability_constants_init(msg["abilityConstants"])
+        self._hero_init(msg["heroConstants"])
 
     def _handle_pick_message(self, msg):
         import copy
@@ -391,8 +391,8 @@ class World:
         abilities = []
         for dic in ability_list:
             ability_constant = AbilityConstants(dic["name"], self._get_ability_type(dic["type"]), dic["range"],
-                                                dic["APCost"],
-                                                dic["cooldown"], dic["areaOfEffect"], dic["power"], dic["isLobbing"])
+                                                dic["APCost"], dic["cooldown"], dic["areaOfEffect"], dic["power"],
+                                                dic["isLobbing"])
             abilities.append(ability_constant)
         self.ability_constants = abilities
 
@@ -413,7 +413,8 @@ class World:
             for name in h["abilityNames"]:
                 names.append(name)
             constant = HeroConstants(h["name"], names, h["maxHP"], h["moveAPCost"], h["respawnTime"])
-            heroes.append(Hero(0, constant, []))
+            heroes.append(Hero(0, constant,
+                               [Ability(self._get_ability_constants(ability_name), 0) for ability_name in names]))
             constants.append(constant)
         self.heroes = heroes
         self.hero_constants = constants
@@ -666,7 +667,9 @@ class World:
         return None
 
     def get_path_move_directions(self, start_cell=None, start_row=None, start_column=None, end_cell=None, end_row=None,
-                                 end_column=None):
+                                 end_column=None, not_pass=None):
+        if not_pass is None:
+            not_pass = []
         if start_cell is None:
             if start_row is None or start_column is None:
                 return None
@@ -681,7 +684,7 @@ class World:
         queue = [start_cell]
         visited = [[False for _ in range(self.map.column_num)] for _ in range(self.map.row_num)]
         visited[start_cell.row][start_cell.column] = True
-        if self._bfs(parents, visited, queue, end_cell):
+        if self._bfs(parents, visited, queue, end_cell, not_pass):
             result = []
             parent = parents[end_cell.row][end_cell.column]
             while parent[1] is not start_cell:
@@ -692,7 +695,7 @@ class World:
             return list(reversed(result))
         return []
 
-    def _bfs(self, parents, visited, queue, target):
+    def _bfs(self, parents, visited, queue, target, not_pass):
         if len(queue) == 0:
             return False
         current = queue[0]
@@ -700,11 +703,11 @@ class World:
             return True
         for direction in Direction:
             neighbour = self._get_next_cell(current, direction)
-            if neighbour is not None and not visited[neighbour.row][neighbour.column]:
+            if neighbour is not None and not visited[neighbour.row][neighbour.column] and neighbour not in not_pass:
                 queue += [neighbour]
                 parents[neighbour.row][neighbour.column] = [direction, current]
                 visited[neighbour.row][neighbour.column] = True
-        return self._bfs(parents, visited, queue[1:], target)
+        return self._bfs(parents, visited, queue[1:], target, not_pass)
 
     def get_cells_in_aoe(self, cell, area_of_effect):
         cells = []
