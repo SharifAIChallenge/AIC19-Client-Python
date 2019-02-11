@@ -34,7 +34,8 @@ MANIFEST
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
-
+server.jar
+AI.py
 # Unit test / coverage reports
 htmlcov/
 .tox/
