@@ -744,13 +744,13 @@ class World:
                 return None
             target_cell = self.map.get_cell(target_row, target_column)
 
-        cells = self.get_impact_cells(ability_name, start_cell, target_cell)
+        cells = self.get_impact_cells(ability_constant, start_cell, target_cell)
         affected_cells = set()
         for cell in cells:
             affected_cells.update(self.get_cells_in_aoe(cell, ability_constant.area_of_effect))
         if ability_constant.type == AbilityType.HEAL:
             return self.get_my_heroes_in_cells(cells)
-        return self.get_opp_heroes_in_cells(cells)
+        return self._get_opp_heroes_in_cells(cells)
 
     def get_my_heroes_in_cells(self, cells):
         heroes = []
@@ -760,10 +760,10 @@ class World:
                 heroes.append(hero)
         return heroes
 
-    def get_opp_heroes_in_cells(self, cells):
+    def _get_opp_heroes_in_cells(self, cells):
         heroes = []
         for cell in cells:
-            hero = self.get_opp_hero(cell)
+            hero = self._get_opp_hero(cell)
             if hero:
                 heroes.append(hero)
         return heroes
