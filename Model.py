@@ -146,7 +146,7 @@ class Hero:
 
     def get_ability(self, ability_name):
         for ability in self.abilities:
-            if ability.name == ability_name:
+            if ability_name is AbilityName and ability_name.value == ability.name or ability.name == ability_name:
                 return ability
         return None
 
@@ -346,7 +346,7 @@ class World:
 
     def _get_ability_constants(self, name):
         for constant in self.ability_constants:
-            if constant.name == name:
+            if name is AbilityName and name.value == constant.name or constant.name == name:
                 return constant
 
     def _update_heroes(self, heroes_list, main_hero_list):
@@ -540,8 +540,8 @@ class World:
         return impact_cells
 
     def is_affected(self, ability_constant, cell):
-        return (self._get_opp_hero(cell) is not None and not ability_constant.type == AbilityType.HEAL) or (
-                self._get_my_hero(cell) is not None and ability_constant.type == AbilityType.HEAL)
+        return (self._get_opp_hero(cell) is not None and not ability_constant.type == AbilityType.DEFENSIVE) or (
+                self._get_my_hero(cell) is not None and ability_constant.type == AbilityType.DEFENSIVE)
 
     @staticmethod
     def manhattan_distance(start_cell=None, end_cell=None, start_cell_row=None, start_cell_column=None,
@@ -748,7 +748,7 @@ class World:
         affected_cells = set()
         for cell in cells:
             affected_cells.update(self.get_cells_in_aoe(cell, ability_constant.area_of_effect))
-        if ability_constant.type == AbilityType.HEAL:
+        if ability_constant.type == AbilityType.DEFENSIVE:
             return self.get_my_heroes_in_cells(cells)
         return self._get_opp_heroes_in_cells(cells)
 
