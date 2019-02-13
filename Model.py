@@ -526,9 +526,9 @@ class World:
         if start_cell.is_wall or start_cell == target_cell and not ability_constant.is_lobbing:
             return [start_cell]
         last_cell = None
-        rey_cells = self.get_ray_cells(start_cell, target_cell)
+        ray_cells = self.get_ray_cells(start_cell, target_cell)
         impact_cells = []
-        for cell in rey_cells:
+        for cell in ray_cells:
             if self.manhattan_distance(cell, start_cell) > ability_constant.range:
                 continue
             last_cell = cell
@@ -540,7 +540,7 @@ class World:
         return impact_cells
 
     def is_affected(self, ability_constant, cell):
-        return (self._get_opp_hero(cell) is not None and not ability_constant.type == AbilityType.DEFENSIVE) or (
+        return (self._get_opp_hero(cell) is not None and ability_constant.type == AbilityType.OFFENSIVE) or (
                 self._get_my_hero(cell) is not None and ability_constant.type == AbilityType.DEFENSIVE)
 
     @staticmethod
@@ -596,17 +596,17 @@ class World:
                         if current is not former:
                             return possible_next_cell
                         options += [possible_next_cell]
+                else:
+                    x3 = (current.row + possible_next_cell.row) / 2 + (possible_next_cell.column - current.column) / 2
+                    y3 = (possible_next_cell.column + current.column) / 2 + (possible_next_cell.row - current.row) / 2
 
-                x3 = (current.row + possible_next_cell.row) / 2 + (possible_next_cell.column - current.column) / 2
-                y3 = (possible_next_cell.column + current.column) / 2 + (possible_next_cell.row - current.row) / 2
+                    x4 = (current.row + possible_next_cell.row) / 2 - (possible_next_cell.column - current.column) / 2
+                    y4 = (possible_next_cell.column + current.column) / 2 - (possible_next_cell.row - current.row) / 2
 
-                x4 = (current.row + possible_next_cell.row) / 2 - (possible_next_cell.column - current.column) / 2
-                y4 = (possible_next_cell.column + current.column) / 2 - (possible_next_cell.row - current.row) / 2
-
-                if self._slope_equation(x1, y1, x2, y2, x3, y3) * self._slope_equation(x1, y1, x2, y2, x4, y4) < 0:
-                    if current is not former:
-                        return possible_next_cell
-                    options += [possible_next_cell]
+                    if self._slope_equation(x1, y1, x2, y2, x3, y3) * self._slope_equation(x1, y1, x2, y2, x4, y4) < 0:
+                        if current is not former:
+                            return possible_next_cell
+                        options += [possible_next_cell]
 
         def is_between(first, second, between):
             return (first.row <= between.row <= second.row or first.row >= between.row >= second.row) and \
@@ -743,7 +743,6 @@ class World:
             if target_row is None or target_column is None:
                 return None
             target_cell = self.map.get_cell(target_row, target_column)
-
         cells = self.get_impact_cells(ability_constant, start_cell, target_cell)
         affected_cells = set()
         for cell in cells:
@@ -820,7 +819,7 @@ class World:
     def _get_ability_type(param):
         if param == 'DODGE':
             return AbilityType.DODGE
-        if param == 'OFFENCIVE':
+        if param == 'OFFENSIVE':
             return AbilityType.OFFENSIVE
         if param == 'DEFENSIVE':
             return AbilityType.DEFENSIVE
