@@ -161,7 +161,7 @@ class Hero:
         return self.id
 
     def __str__(self):
-        return 'id:' + str(self.id) + '\t name:' + self.name
+        return 'id:' + str(self.id) + '    name:' + self.name
 
 
 class Cell:
@@ -652,9 +652,15 @@ class World:
 
         if start_cell == end_cell:
             return True
-        if end_cell == self.get_ray_cells(start_cell, end_cell)[-1]:
+        ray_cells = self._get_ray_cells_without_end_wall(start_cell, end_cell)
+        if len(ray_cells) > 0 and end_cell == ray_cells[-1]:
             return True
         return False
+
+    def _get_ray_cells_without_end_wall(self, start_cell, end_cell):
+        if not self.is_accessible(start_cell.row, start_cell.column):
+            return [start_cell]
+        return self.get_ray_cells(start_cell, end_cell)
 
     def is_accessible(self, row, column):
         if 0 <= row < self.map.row_num and 0 <= column < self.map.column_num:
