@@ -187,7 +187,7 @@ class Cell:
         return self.row * 32 + self.column
 
     def __str__(self):
-        return 'row:' + str(self.row) + '\tcolumn:' + str(self.column)
+        return 'row:' + str(self.row) + '  column:' + str(self.column)
 
 
 class Map:
@@ -228,6 +228,10 @@ class CastAbility:
         self.start_cell = start_cell
         self.end_cell = end_cell
         self.ability_name = ability_name
+
+    def __str__(self):
+        return "caster_id:{},   start_cell:{},  end_cell:{},   ability_name:{}".format(self.caster_id, self.start_cell,
+                                                                                       self.end_cell, self.ability_name)
 
 
 class World:
