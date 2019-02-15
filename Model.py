@@ -207,6 +207,8 @@ class Map:
     def get_cell(self, row, column):
         if self.is_in_map(row, column):
             return self.cells[row][column]
+        elif row == -1 and column == -1:
+            return Cell(-1, -1, False, False, False, False, False)
         else:
             return None
 
@@ -300,7 +302,7 @@ class World:
                     my_hero = copy.copy(first_hero)
                     my_hero.id = hero["id"]
                     my_hero.update_abilities([Ability(self._get_ability_constants(ability_name), 0)
-                                             for ability_name in my_hero.ability_names])
+                                              for ability_name in my_hero.ability_names])
                     self.my_heroes.append(my_hero)
         for hero in opp_heroes:
             for first_hero in self.heroes:
@@ -308,7 +310,7 @@ class World:
                     opp_hero = copy.copy(first_hero)
                     opp_hero.id = hero["id"]
                     opp_hero.update_abilities([Ability(self._get_ability_constants(ability_name), 0) for ability_name
-                                              in opp_hero.ability_names])
+                                               in opp_hero.ability_names])
                     self.opp_heroes.append(opp_hero)
 
     def _handle_turn_message(self, msg):
@@ -334,10 +336,13 @@ class World:
             for target in cast_ability["targetHeroIds"]:
                 targeted_list.append(target)
             cast_list.append(CastAbility(cast_ability["casterId"], targeted_list,
-                                         self.map.get_cell(cast_ability["startCell"]["row"] if "startCell" in cast_ability else -1,
-                                                           cast_ability["startCell"]["column"] if "startCell" in cast_ability else -1),
-                                         self.map.get_cell(cast_ability["endCell"]["row"] if "endCell" in cast_ability else -1,
-                                                           cast_ability["endCell"]["column"] if "endCell" in cast_ability else -1),
+                                         self.map.get_cell(
+                                             cast_ability["startCell"]["row"] if "startCell" in cast_ability else -1,
+                                             cast_ability["startCell"][
+                                                 "column"] if "startCell" in cast_ability else -1),
+                                         self.map.get_cell(
+                                             cast_ability["endCell"]["row"] if "endCell" in cast_ability else -1,
+                                             cast_ability["endCell"]["column"] if "endCell" in cast_ability else -1),
                                          cast_ability["abilityName"]))
         if my_or_opp == "my":
             self.my_cast_abilities = cast_list
@@ -657,7 +662,6 @@ class World:
             return True
         return False
 
-
     def is_accessible(self, row, column):
         if 0 <= row < self.map.row_num and 0 <= column < self.map.column_num:
             return not self.map.get_cell(row, column).is_wall
@@ -787,7 +791,7 @@ class World:
             args += [ability.name]
 
         if cell is not None:
-            args += [cell.row, cell. column]
+            args += [cell.row, cell.column]
         elif row is not None and column is not None:
             args += [row, column]
 
