@@ -754,6 +754,8 @@ class World:
                 return None
             target_cell = self.map.get_cell(target_row, target_column)
         cells = self.get_impact_cells(ability_constant, start_cell, target_cell)
+        if cells is None or cells is []:
+            return []
         affected_cells = set()
         for cell in cells:
             affected_cells.update(self.get_cells_in_aoe(cell, ability_constant.area_of_effect))
