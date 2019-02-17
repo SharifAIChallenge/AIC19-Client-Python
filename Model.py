@@ -310,7 +310,7 @@ class World:
                     self.my_heroes.append(my_hero)
         for hero in opp_heroes:
             for first_hero in self.heroes:
-                if hero["type"] == first_hero.name:
+                if HeroName[hero["type"]] == first_hero.name:
                     opp_hero = copy.copy(first_hero)
                     opp_hero.id = hero["id"]
                     opp_hero.update_abilities([Ability(self._get_ability_constants(ability_name), 0) for ability_name
