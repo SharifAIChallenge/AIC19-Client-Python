@@ -97,7 +97,7 @@ class Ability:
 class HeroConstants:
     def __init__(self, hero_name, ability_names, max_hp, move_ap_cost, respawn_time):
         self.hero_name = hero_name
-        self.ability_names = self._get_ability_name_enum(ability_names)
+        self.ability_names = ability_names
         self.max_hp = max_hp
         self.move_ap_cost = move_ap_cost
         self.respawn_time = respawn_time
@@ -302,7 +302,7 @@ class World:
         self.current_turn = msg["currentTurn"]
         for hero in my_heroes:
             for first_hero in self.heroes:
-                if hero["type"] == first_hero.name:
+                if HeroName[hero["type"]] == first_hero.name:
                     my_hero = copy.copy(first_hero)
                     my_hero.id = hero["id"]
                     my_hero.update_abilities([Ability(self._get_ability_constants(ability_name), 0)
@@ -310,7 +310,7 @@ class World:
                     self.my_heroes.append(my_hero)
         for hero in opp_heroes:
             for first_hero in self.heroes:
-                if hero["type"] == first_hero.name:
+                if HeroName[hero["type"]] == first_hero.name:
                     opp_hero = copy.copy(first_hero)
                     opp_hero.id = hero["id"]
                     opp_hero.update_abilities([Ability(self._get_ability_constants(ability_name), 0) for ability_name
@@ -321,7 +321,7 @@ class World:
         msg = msg['args'][0]
         self.my_score = msg["myScore"]
         self.opp_score = msg["oppScore"]
-        self.current_phase = self._get_phase(msg["currentPhase"])
+        self.current_phase = Phase[msg["currentPhase"]]
         self.ap = msg["AP"]
         self.current_turn = msg["currentTurn"]
         self._update_map(msg["map"])
@@ -347,7 +347,7 @@ class World:
                                          self.map.get_cell(
                                              cast_ability["endCell"]["row"] if "endCell" in cast_ability else -1,
                                              cast_ability["endCell"]["column"] if "endCell" in cast_ability else -1),
-                                         cast_ability["abilityName"]))
+                                         AbilityName[cast_ability["abilityName"]]))
         if my_or_opp == "my":
             self.my_cast_abilities = cast_list
         elif my_or_opp == "opp":
@@ -355,13 +355,13 @@ class World:
 
     def _get_ability_constants(self, name):
         for constant in self.ability_constants:
-            if name is AbilityName and name.value == constant.name or constant.name == name:
+            if name == constant.name:
                 return constant
 
     def _update_heroes(self, heroes_list, main_hero_list):
         import copy
         for new_hero in heroes_list:
-            hero_name = new_hero["type"]
+            hero_name = HeroName[new_hero["type"]]
             hero = copy.copy(self._get_hero(hero_name))
             hero.id = new_hero["id"]
             hero.current_hp = new_hero["currentHP"]
@@ -371,8 +371,8 @@ class World:
             hero.offensive_abilities = []
             hero.defensive_abilities = []
             if cooldowns is not None:
-                hero.abilities += [Ability(self._get_ability_constants(cooldown["name"]), cooldown["remCooldown"])
-                                   for cooldown in cooldowns]
+                hero.abilities += [Ability(self._get_ability_constants(AbilityName[cooldown["name"]]),
+                                           cooldown["remCooldown"]) for cooldown in cooldowns]
             else:
                 hero.abilities += [Ability(self._get_ability_constants(ability_name), -1)
                                    for ability_name in hero.ability_names]
@@ -406,7 +406,7 @@ class World:
 
         abilities = []
         for dic in ability_list:
-            ability_constant = AbilityConstants(dic["name"], self._get_ability_type(dic["type"]), dic["range"],
+            ability_constant = AbilityConstants(AbilityName[dic["name"]], AbilityType[dic["type"]], dic["range"],
                                                 dic["APCost"], dic["cooldown"], dic["areaOfEffect"], dic["power"],
                                                 dic["isLobbing"])
             abilities.append(ability_constant)
@@ -427,8 +427,8 @@ class World:
         for step, h in enumerate(heroes_list):
             names = []
             for name in h["abilityNames"]:
-                names.append(name)
-            constant = HeroConstants(h["name"], names, h["maxHP"], h["moveAPCost"], h["respawnTime"])
+                names.append(AbilityName[name])
+            constant = HeroConstants(HeroName[h["name"]], names, h["maxHP"], h["moveAPCost"], h["respawnTime"])
             heroes.append(Hero(0, constant, []))
             constants.append(constant)
         self.heroes = heroes
@@ -794,7 +794,7 @@ class World:
         if ability_name is not None:
             args += [ability_name.value]
         elif ability is not None:
-            args += [ability.name]
+            args += [ability.name.value]
 
         if cell is not None:
             args += [cell.row, cell.column]
