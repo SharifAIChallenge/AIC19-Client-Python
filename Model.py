@@ -57,7 +57,7 @@ class AbilityConstants:
 
 class GameConstants:
     def __init__(self, max_ap, preprocess_timeout, first_move_timeout, normal_timeout,
-                 max_turns, kill_score, objective_zone_score, max_score, initial_overtime):
+                 max_turns, kill_score, objective_zone_score, max_score, init_overtime):
         self.max_ap = max_ap
         self.preprocess_timeout = preprocess_timeout
         self.first_move_timeout = first_move_timeout
@@ -66,7 +66,7 @@ class GameConstants:
         self.kill_score = kill_score
         self.objective_zone_score = objective_zone_score
         self.max_score = max_score
-        self.initial_overtime = initial_overtime
+        self.init_overtime = init_overtime
         if World.DEBUGGING_MODE:
             import datetime
             World.LOG_FILE_POINTER = open('client' + '-' +
@@ -94,7 +94,7 @@ class Ability:
         return self.rem_cooldown <= 0
 
     def __str__(self):
-        return 'name:' + self.name + '\trem_cooldown:' + str(self.rem_cooldown)
+        return 'name:' + self.name.value + '\trem_cooldown:' + str(self.rem_cooldown)
 
 
 class HeroConstants:
@@ -164,7 +164,7 @@ class Hero:
         return self.id
 
     def __str__(self):
-        return 'id:' + str(self.id) + '    name:' + self.name
+        return 'id:' + str(self.id) + '    name:' + self.name.value
 
 
 class Cell:
@@ -263,7 +263,7 @@ class World:
             self.kill_score = game_constants.kill_score
             self.objective_zone_score = game_constants.objective_zone_score
             self.max_score = game_constants.max_score
-            self.initial_overtime = game_constants.initial_overtime
+            self.init_overtime = game_constants.init_overtime
             self.hero_constants = world.hero_constants
             self.ability_constants = world.ability_constants
             self.map = world.map
@@ -475,13 +475,13 @@ class World:
                                             kill_score=game_constants_msg["killScore"],
                                             objective_zone_score=game_constants_msg["objectiveZoneScore"],
                                             max_score=game_constants_msg["maxScore"],
-                                            initial_overtime=game_constants_msg["initialOvertime"])
+                                            init_overtime=game_constants_msg["initOvertime"])
         self.max_ap = self.game_constants.max_ap
         self.max_turns = self.game_constants.max_turns
         self.kill_score = self.game_constants.kill_score
         self.objective_zone_score = self.game_constants.objective_zone_score
         self.max_score = self.game_constants.max_score
-        self.initial_overtime = self.game_constants.initial_overtime
+        self.init_overtime = self.game_constants.init_overtime
 
     def _get_hero(self, hero_type):
         for hero in self.heroes:
