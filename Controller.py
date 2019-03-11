@@ -26,7 +26,7 @@ class Controller:
     def start(self):
         self.read_settings()
         self.network = Network(ip=self.conf[self.argNames[0]],
-                               port=self.conf[self.argNames[1]],
+                               port=int(self.conf[self.argNames[1]]),
                                token=self.conf[self.argNames[2]],
                                message_handler=self.handle_message)
         self.network.connect()
