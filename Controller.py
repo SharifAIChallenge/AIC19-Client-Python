@@ -63,32 +63,32 @@ class Controller:
                 self.conf[self.argNames[i]] = os.environ.get(self.argNames[i])
 
     def handle_message(self, message):
-        try:
-            if message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_INIT:
-                self.world._handle_init_message(message)
-                threading.Thread(target=self.launch_on_thread(self.client.preprocess, 'init', self.world, [])).start()
-            elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_PICK:
-                new_world = World(world=self.world)
-                new_world._handle_pick_message(message)
-                threading.Thread(target=self.launch_on_thread(self.client.pick, 'pick', new_world,
+        if message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_INIT:
+            self.world._handle_init_message(message)
+            threading.Thread(target=self.launch_on_thread(self.client.preprocess, 'init', self.world, [])).start()
+        elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_PICK:
+            new_world = World(world=self.world)
+            new_world._handle_pick_message(message)
+            threading.Thread(target=self.launch_on_thread(self.client.pick, 'pick', new_world,
+                                                          [new_world.current_turn])).start()
+        elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_TURN:
+            new_world = World(world=self.world)
+            new_world._handle_turn_message(message)
+            if new_world.current_phase == Phase.MOVE:
+                threading.Thread(target=self.launch_on_thread(self.client.move, 'move', new_world,
+                                                              [new_world.current_turn,
+                                                               new_world.move_phase_num])).start()
+            elif new_world.current_phase == Phase.ACTION:
+                threading.Thread(target=self.launch_on_thread(self.client.action, 'action', new_world,
                                                               [new_world.current_turn])).start()
-            elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_TURN:
-                new_world = World(world=self.world)
-                new_world._handle_turn_message(message)
-                if new_world.current_phase == Phase.MOVE:
-                    threading.Thread(target=self.launch_on_thread(self.client.move, 'move', new_world,
-                                                                  [new_world.current_turn,
-                                                                   new_world.move_phase_num])).start()
-                elif new_world.current_phase == Phase.ACTION:
-                    threading.Thread(target=self.launch_on_thread(self.client.action, 'action', new_world,
-                                                                  [new_world.current_turn])).start()
-            elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_SHUTDOWN:
-                self.terminate()
-        except Exception:
-            print("this phase lost beacause some exceptions in your code")
+        elif message[ServerConstants.KEY_NAME] == ServerConstants.MESSAGE_TYPE_SHUTDOWN:
+            self.terminate()
 
     def launch_on_thread(self, action, name, new_world, args):
-        action(new_world)
+        try:
+            action(new_world)
+        except Exception as e:
+            print(e)
         new_world.queue.put(Event(name + '-end', args))
 
 
