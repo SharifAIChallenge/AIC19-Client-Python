@@ -14,6 +14,9 @@ class AbilityName(Enum):
     GUARDIAN_ATTACK = "GUARDIAN_ATTACK"
     GUARDIAN_DODGE = "GUARDIAN_DODGE"
     GUARDIAN_FORTIFY = "GUARDIAN_FORTIFY"
+    SHADOW_ATTACK = "SHADOW_ATTACK"
+    SHADOW_DODGE = "SHADOW_DODGE"
+    SHADOW_SLASH = "SHADOW_SLASH"
 
 
 class Direction(Enum):
@@ -28,6 +31,7 @@ class HeroName(Enum):
     BLASTER = "BLASTER"
     HEALER = "HEALER"
     GUARDIAN = "GUARDIAN"
+    SHADOW = "SHADOW"
 
 
 class AbilityType(Enum):
@@ -43,7 +47,7 @@ class Phase(Enum):
 
 
 class AbilityConstants:
-    def __init__(self, name, type, range, ap_cost, cooldown, area_of_effect, power, is_lobbing):
+    def __init__(self, name, type, range, ap_cost, cooldown, area_of_effect, power, is_lobbing, is_piercing):
         self.name = name
         self.type = type
         self.range = range
@@ -52,19 +56,23 @@ class AbilityConstants:
         self.power = power
         self.area_of_effect = area_of_effect
         self.is_lobbing = is_lobbing
+        self.is_piercing = is_piercing
 
 
 class GameConstants:
-    def __init__(self, max_ap, preprocess_timeout, first_move_timeout, normal_timeout,
-                 max_turns, kill_score, objective_zone_score, max_score):
+    def __init__(self, max_ap, preprocess_timeout, first_move_timeout, normal_timeout, max_turns,
+                 kill_score, objective_zone_score, max_score, total_move_phases, max_score_diff, init_overtime):
         self.max_ap = max_ap
         self.preprocess_timeout = preprocess_timeout
         self.first_move_timeout = first_move_timeout
+        self.total_move_phases = total_move_phases
         self.normal_timeout = normal_timeout
         self.max_turns = max_turns
         self.kill_score = kill_score
         self.objective_zone_score = objective_zone_score
         self.max_score = max_score
+        self.init_overtime = init_overtime
+        self.max_score_diff = max_score_diff
         if World.DEBUGGING_MODE:
             import datetime
             World.LOG_FILE_POINTER = open('client' + '-' +
@@ -86,12 +94,13 @@ class Ability:
         self.power = ability_constants.power
         self.area_of_effect = ability_constants.area_of_effect
         self.is_lobbing = ability_constants.is_lobbing
+        self.is_piercing = ability_constants.is_piercing
 
     def is_ready(self):
         return self.rem_cooldown <= 0
 
     def __str__(self):
-        return 'name:' + self.name + '\trem_cooldown:' + str(self.rem_cooldown)
+        return 'name:' + self.name.value + '\trem_cooldown:' + str(self.rem_cooldown)
 
 
 class HeroConstants:
@@ -161,7 +170,7 @@ class Hero:
         return self.id
 
     def __str__(self):
-        return 'id:' + str(self.id) + '    name:' + self.name
+        return 'id:' + str(self.id) + '    name:' + self.name.value
 
 
 class Cell:
@@ -245,6 +254,8 @@ class World:
         self.my_score = 0
         self.ap = 0
         self.opp_score = 0
+        self.max_overtime = 0
+        self.remaining_overtime = 0
         self.current_phase = Phase.PICK
         self.current_turn = 0
         self.move_phase_num = -1
@@ -258,11 +269,14 @@ class World:
             self.kill_score = game_constants.kill_score
             self.objective_zone_score = game_constants.objective_zone_score
             self.max_score = game_constants.max_score
+            self.total_move_phases = game_constants.total_move_phases
+            self.init_overtime = game_constants.init_overtime
             self.hero_constants = world.hero_constants
             self.ability_constants = world.ability_constants
             self.map = world.map
             self.queue = world.queue
             self.heroes = world.heroes
+            self.max_score_diff = world.max_score_diff
         else:
             self.queue = queue
 
@@ -321,6 +335,8 @@ class World:
         msg = msg['args'][0]
         self.my_score = msg["myScore"]
         self.opp_score = msg["oppScore"]
+        self.max_overtime = msg["maxOvertime"]
+        self.remaining_overtime = msg["remainingOvertime"]
         self.current_phase = Phase[msg["currentPhase"]]
         self.ap = msg["AP"]
         self.current_turn = msg["currentTurn"]
@@ -408,7 +424,7 @@ class World:
         for dic in ability_list:
             ability_constant = AbilityConstants(AbilityName[dic["name"]], AbilityType[dic["type"]], dic["range"],
                                                 dic["APCost"], dic["cooldown"], dic["areaOfEffect"], dic["power"],
-                                                dic["isLobbing"])
+                                                dic["isLobbing"], dic["isPiercing"])
             abilities.append(ability_constant)
         self.ability_constants = abilities
 
@@ -466,12 +482,17 @@ class World:
                                             max_turns=game_constants_msg["maxTurns"],
                                             kill_score=game_constants_msg["killScore"],
                                             objective_zone_score=game_constants_msg["objectiveZoneScore"],
-                                            max_score=game_constants_msg["maxScore"])
+                                            max_score=game_constants_msg["maxScore"],
+                                            total_move_phases=game_constants_msg["totalMovePhases"],
+                                            max_score_diff=game_constants_msg["maxScoreDiff"],
+                                            init_overtime=game_constants_msg["initOvertime"])
         self.max_ap = self.game_constants.max_ap
         self.max_turns = self.game_constants.max_turns
         self.kill_score = self.game_constants.kill_score
         self.objective_zone_score = self.game_constants.objective_zone_score
         self.max_score = self.game_constants.max_score
+        self.max_score_diff = self.game_constants.max_score_diff
+        self.init_overtime = self.game_constants.init_overtime
 
     def _get_hero(self, hero_type):
         for hero in self.heroes:
@@ -529,28 +550,28 @@ class World:
         return self.get_impact_cells(ability_constant, start_cell, target_cell)[-1]
 
     def get_impact_cells(self, ability_constant, start_cell, target_cell):
-        if ability_constant.is_lobbing:
-            if self.manhattan_distance(target_cell, start_cell) <= ability_constant.range:
-                return [target_cell]
         if start_cell.is_wall or start_cell == target_cell and not ability_constant.is_lobbing:
             return [start_cell]
         last_cell = None
-        ray_cells = self.get_ray_cells(start_cell, target_cell)
+        ray_cells = self.get_ray_cells(start_cell, target_cell, ability_constant.is_lobbing)
         impact_cells = []
         for cell in ray_cells:
             if self.manhattan_distance(cell, start_cell) > ability_constant.range:
-                continue
-            last_cell = cell
-            if self.is_affected(ability_constant, cell) or ability_constant.is_lobbing:
-                impact_cells.append(cell)
                 break
+            last_cell = cell
+            if ability_constant.is_lobbing:
+                continue
+            if self.is_affected(ability_constant, cell):
+                impact_cells.append(cell)
+                if not ability_constant.is_piercing:
+                    break
         if last_cell not in impact_cells:
             impact_cells.append(last_cell)
         return impact_cells
 
     def is_affected(self, ability_constant, cell):
-        return (self._get_opp_hero(cell) is not None and ability_constant.type == AbilityType.OFFENSIVE) or (
-                self._get_my_hero(cell) is not None and ability_constant.type == AbilityType.DEFENSIVE)
+        return (self._get_opp_hero(cell) is not None and not ability_constant.type == AbilityType.DEFENSIVE) or \
+               (self._get_my_hero(cell) is not None and ability_constant.type == AbilityType.DEFENSIVE)
 
     @staticmethod
     def manhattan_distance(start_cell=None, end_cell=None, start_cell_row=None, start_cell_column=None,
@@ -625,8 +646,8 @@ class World:
             if is_between(start, target, option):
                 return option
 
-    def get_ray_cells(self, start_cell, end_cell):
-        if not self.is_accessible(start_cell.row, start_cell.column):
+    def get_ray_cells(self, start_cell, end_cell, is_lobbing=False):
+        if not self.is_accessible(start_cell.row, start_cell.column) and not is_lobbing:
             return []
         if start_cell == end_cell:
             return [start_cell]
@@ -637,11 +658,11 @@ class World:
             neighbour = self._calculate_neighbour(start_cell, end_cell, current, former)
             if neighbour is None:
                 break
-            if neighbour.is_wall:
+            if neighbour.is_wall and not is_lobbing:
                 break
             if neighbour.row != current.row and neighbour.column != current.column and (
                     self.map.get_cell(current.row, neighbour.column).is_wall
-                    or self.map.get_cell(neighbour.row, current.column).is_wall):
+                    or self.map.get_cell(neighbour.row, current.column).is_wall) and not is_lobbing:
                 break
             res += [neighbour]
             former = current
