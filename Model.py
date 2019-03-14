@@ -781,8 +781,8 @@ class World:
         for cell in cells:
             affected_cells.update(self.get_cells_in_aoe(cell, ability_constant.area_of_effect))
         if ability_constant.type == AbilityType.DEFENSIVE:
-            return self.get_my_heroes_in_cells(cells)
-        return self._get_opp_heroes_in_cells(cells)
+            return self.get_my_heroes_in_cells(affected_cells)
+        return self._get_opp_heroes_in_cells(affected_cells)
 
     def get_my_heroes_in_cells(self, cells):
         heroes = []
